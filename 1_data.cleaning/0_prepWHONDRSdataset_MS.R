@@ -18,7 +18,7 @@ invisible(lapply(pckgs, library, character.only = T))
 rm(pckgs, miss.pckgs)
 
 # Read in data ----------------------------------------------------------------------------
-proc.ft <- read.csv("./Dataset/Processed_S19S_Sediments_Water_2-2_newcode.csv",
+proc.ft <- read.csv("./1_data.cleaning/raw.data/Processed_S19S_Sediments_Water_2-2_newcode.csv",
                     sep = ",", stringsAsFactors = F) %>% setDT()
 head(proc.ft)[1:5,1:20]
 dim(proc.ft)
@@ -128,15 +128,15 @@ nrow(melt.abund) == nrow(cleaned.dt) # yes
 rm(melt.abund, sed, sur)
 
 # save as long format comes in handy sometimes
-#write.table(cleaned.dt, paste0("../Dataset/SED.SW_FTICR_MFpeakint_long_", Sys.Date(),".csv"),
+#write.table(cleaned.dt, paste0("./1_data.cleaning/output/SED.SW_FTICR_MFpeakint_long_", Sys.Date(),".csv"),
 #            sep = ",", row.names = F)
 
 
 # Meta data -----------------------------------------------------------------------------------------------------
-#surface <- read.csv("./Dataset/Surface/WHONDRS_S19S_Metadata_v2.csv",
+#surface <- read.csv("./1_data.cleaning/raw.data/Surface/WHONDRS_S19S_Metadata_v2.csv",
 #                    sep = ",", stringsAsFactors = F) %>% setDT()
 
-#sed <- read.csv("./Dataset/Sediment/WHONDRS_S19S_Metadata_v3.csv",
+#sed <- read.csv("./1_data.cleaning/raw.data/Sediment/WHONDRS_S19S_Metadata_v3.csv",
 #                    sep = ",", stringsAsFactors = F) %>% setDT()
 
 # are they the same?
@@ -147,7 +147,7 @@ rm(melt.abund, sed, sur)
 
 # take only v3
 
-meta <- read.csv("./Dataset/Sediment/WHONDRS_S19S_Metadata_v3.csv",
+meta <- read.csv("./1_data.cleaning/raw.data/Sediment/WHONDRS_S19S_Metadata_v3.csv",
                  sep = ",", stringsAsFactors = F) %>% setDT()
 # 66 cols
 
@@ -213,7 +213,7 @@ ft.meta<-ft.meta %>%
          Approx.Distance.From.Gauge_meters:Gauge_Longitude_dec.deg, Met.Station.Nearby:Notes, Study_Code)
 
 # add respiration ---------------------------------------------------------------------------------------
-resp <- read.csv("./Dataset/Sediment/WHONDRS_S19S_Sediment_Incubations_Respiration_Rates.csv",
+resp <- read.csv("./1_data.cleaning/raw.data/Sediment/WHONDRS_S19S_Sediment_Incubations_Respiration_Rates.csv",
                  sep = ",", stringsAsFactors = F) %>% setDT()
 resp[,c("project.name", "sample.name", "sample.type", "location.id") := 
        tstrsplit(Sample_ID, "_", fixed = T)]
@@ -229,7 +229,7 @@ ft.meta <- merge(ft.meta, resp, by = c("river.id", "location.id", "sample.type")
 
 # add NPOC Sediment ---------------------------------------------------------------------------------------
 # Includes incubation data
-sed.npoc <- read.csv("./Dataset/Sediment/WHONDRS_S19S_Sediment_NPOC.csv",
+sed.npoc <- read.csv("./1_data.cleaning/raw.data/Sediment/WHONDRS_S19S_Sediment_NPOC.csv",
                  sep = ",", stringsAsFactors = F) %>% setDT()
 
 sed.npoc[, c("project.name", "sample.name", "sample.type", "sampling.type", "location.id") := 
@@ -257,7 +257,7 @@ sed.npoc <- sed.npoc[, .(NPOC_mg.L.asC = mean(NPOC_mg.L.asC)),
 ft.meta <- merge(ft.meta, sed.npoc, by = c("river.id", "location.id", "sample.type","sampling.type"), all.x = T)
 
 # add NPOC surface ---------------------------------------------------------------------------------------
-sur.npoc <- read.csv("./Dataset/Surface/WHONDRS_S19S_SW_NPOC.csv",
+sur.npoc <- read.csv("./1_data.cleaning/raw.data/Surface/WHONDRS_S19S_SW_NPOC.csv",
                      sep = ",", stringsAsFactors = F) %>% setDT()
 
 sur.npoc <- sur.npoc[, c("project.name", "sample.name", "replicate.id") := 
@@ -276,7 +276,7 @@ sur.npoc[, NPOC_mg.L.asC := as.numeric(NPOC_mg.L.asC)]
 ft.meta <- ft.meta[sur.npoc, c("NPOC_mg.L.asC") := list(i.NPOC_mg.L.asC), on = .(river.id, replicate.id, sample.type)]
 
 # add isotopes surface ---------------------------------------------------------------------------------------
-iso <- read.csv("./Dataset/Surface/WHONDRS_S19S_SW_Isotopes.csv",
+iso <- read.csv("./1_data.cleaning/raw.data/Surface/WHONDRS_S19S_SW_Isotopes.csv",
                 sep = ",", stringsAsFactors = F) %>% setDT()
 
 iso <- iso[, c("project.name", "sample.name", "replicate.id") := 
@@ -295,7 +295,7 @@ iso <- iso %>%
 ft.meta <- merge(ft.meta, iso, by = c("river.id", "replicate.id","sample.type"), all.x = T)
 
 # add anions surface --------------------------------------------------------------------------------------
-ani <- read.csv("./Dataset/Surface/S19S_Merged_Anions.csv",
+ani <- read.csv("./1_data.cleaning/raw.data/Surface/S19S_Merged_Anions.csv",
                 sep = ",", stringsAsFactors = F) %>% setDT()
 
 ani <- ani[, c("project.name", "sample.name", "replicate.id") := 
@@ -332,17 +332,17 @@ ft.meta <- ft.meta %>% select(ID, river.id, sample.type, location.id, sampling.t
                    everything())
 
 # save
-# write.table(ft.meta, paste0("./Dataset/FTICR_meta_all_",Sys.Date(),".csv"),
+# write.table(ft.meta, paste0("./1_data.cleaning/output/FTICR_meta_all_",Sys.Date(),".csv"),
 #             sep = ",", row.names = F)
 
 
 # Export "community" matrix
 # MolForm cols and ID rows
 com.mat <- dcast(cleaned.dt, ID ~ MolForm, value.var = "peak.int")
-write.table(com.mat, paste0("./Dataset/FTICR_commat_",Sys.Date(),".csv"),
+write.table(com.mat, paste0("./1_data.cleaning/output/FTICR_commat_",Sys.Date(),".csv"),
             sep = ",", row.names = F)
 
 # cross table
-write.table(var.dt, paste0("./Dataset/FTICR_crosstable_",Sys.Date(),".csv"),
+write.table(var.dt, paste0("./1_data.cleaning/output/FTICR_crosstable_",Sys.Date(),".csv"),
             sep = ",", row.names = F)
 

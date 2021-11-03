@@ -16,16 +16,16 @@ rm(pckgs, miss.pckgs)
 # Pre-processed data:
 
 # Community matrix
-com.mat <- read.csv("./Dataset/FTICR_commat_2021-09-29.csv",
+com.mat <- read.csv("./1_data.cleaning/output/FTICR_commat_2021-09-29.csv",
             sep = ",", stringsAsFactors = F) %>% setDT()
 com.mat[1:5,1:5]
 
 # cross table
-cross <- read.csv("./Dataset/FTICR_crosstable_2021-09-29.csv",
+cross <- read.csv("./1_data.cleaning/output/FTICR_crosstable_2021-09-29.csv",
             sep = ",", stringsAsFactors =  F) %>% setDT()
 head(cross)
 
-meta <- read.csv("./Dataset/FTICR_meta_all_2021-09-29.csv",
+meta <- read.csv("./1_data.cleaning/output/FTICR_meta_all_2021-09-29.csv",
                  sep = ",", stringsAsFactors = F) %>% setDT()
 head(meta)
 
@@ -116,15 +116,15 @@ cross.ls <- llply(merged.ls, function(x){
 
 # Revert to original meta data ---------------------------------------------------------------------------------------
 # Get original meta data
-header <- colnames(read.csv("./Dataset/Surface/WHONDRS_S19S_Metadata_v2.csv",
+header <- colnames(read.csv("./1_data.cleaning/raw.data/Surface/WHONDRS_S19S_Metadata_v2.csv",
                    sep = ",", stringsAsFactors = F, header = T))
-surface <- read.csv("./Dataset/Surface/WHONDRS_S19S_Metadata_v2.csv",
+surface <- read.csv("./1_data.cleaning/raw.data/Surface/WHONDRS_S19S_Metadata_v2.csv",
                     sep = ",", stringsAsFactors = F, header = F, skip = 2) %>% setDT()
 colnames(surface) <- header
 
-header <- colnames(read.csv("./Dataset/Sediment/WHONDRS_S19S_Metadata_v3.csv",
+header <- colnames(read.csv("./1_data.cleaning/raw.data/Sediment/WHONDRS_S19S_Metadata_v3.csv",
                             sep = ",", stringsAsFactors = F, header = T))
-sed <- read.csv("./Dataset/Sediment/WHONDRS_S19S_Metadata_v3.csv",
+sed <- read.csv("./1_data.cleaning/raw.data/Sediment/WHONDRS_S19S_Metadata_v3.csv",
                     sep = ",", stringsAsFactors = F, skip = 2, header = F) %>% setDT()
 colnames(sed) <- header
 
@@ -173,22 +173,22 @@ meta <- meta %>% dplyr::select(Study_Code, ID, sample.type:river.id, Date:DO_com
 # Save -------------------------------------------------------------------------------------------------------
 # Save meta data
 write.table(meta,
-            paste0("./Dataset/FTICR_meta_eachriver_", Sys.Date(),".csv"), sep = ",", dec = ".", row.names = F)
+            paste0("./1_data.cleaning/output/FTICR_meta_eachriver_", Sys.Date(),".csv"), sep = ",", dec = ".", row.names = F)
 
 # Save different rarity thresholds
 # create list with names
-save.vec <- c(paste0("./Dataset/FTICR_commat_rep.merged_all_",Sys.Date(),".csv"),
-  paste0("./Dataset/FTICR_commat_rep.merged_rar1_",Sys.Date(),".csv"),
-  paste0("./Dataset/FTICR_commat_rep.merged_rar2_",Sys.Date(),".csv"))
+save.vec <- c(paste0("./1_data.cleaning/output/FTICR_commat_rep.merged_all_",Sys.Date(),".csv"),
+  paste0("./1_data.cleaning/output/FTICR_commat_rep.merged_rar1_",Sys.Date(),".csv"),
+  paste0("./1_data.cleaning/output/FTICR_commat_rep.merged_rar2_",Sys.Date(),".csv"))
 
 # Save community matrix
 mapply(write.table, merged.ls, save.vec, MoreArgs = list(sep = ",", dec = ".", row.names = F))
 
 # Save cross table
 # create list with names
-save.vec <- c(paste0("./Dataset/FTICR_cross.table_rep.merged_all_",Sys.Date(),".csv"),
-              paste0("./Dataset/FTICR_cross.table_rep.merged_rar1_",Sys.Date(),".csv"),
-              paste0("./Dataset/FTICR_cross.table_rep.merged_rar2_",Sys.Date(),".csv"))
+save.vec <- c(paste0("./1_data.cleaning/output/FTICR_cross.table_rep.merged_all_",Sys.Date(),".csv"),
+              paste0("./1_data.cleaning/output/FTICR_cross.table_rep.merged_rar1_",Sys.Date(),".csv"),
+              paste0("./1_data.cleaning/output/FTICR_cross.table_rep.merged_rar2_",Sys.Date(),".csv"))
 
 mapply(write.table, cross.ls, save.vec, MoreArgs = list(sep = ",", dec = ".", row.names = F))
 
