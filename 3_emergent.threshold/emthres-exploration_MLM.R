@@ -16,8 +16,8 @@ data_cross=read.csv("FTICR_crosstable_2021-08-19.csv", row.names = 2) #37,528 fo
 ## Libraries ##
 library(vegan)
 library(ggplot2)
-library(nord)
 library(dplyr)
+library(nord)
 
 ## Run NMDS Analysis ##
 #Organize input to metaMDS
@@ -305,18 +305,22 @@ barplot(log(frequency) ~ occupancy, data = df_sed2, xlab="Occupancy (number of s
 #Add data
 
 #Path:
-setwd("C:/Users/micha/OneDrive/Documentos/GitHub/whondrs-coresat-topic1/Dataset/")
+#setwd("C:/Users/micha/OneDrive/Documentos/GitHub/whondrs-coresat-topic1/Dataset/")
 
 #%%%%%#
 # ALL #
 #%%%%%#
-data_commat=read.csv("FTICR_commat_rep.merged_all_2021-11-03.csv", row.names = 1)
-data_cross=read.csv("FTICR_cross.table_rep.merged_all_2021-11-03.csv", row.names = 2) #37,528 formula 
-data_meta=read.csv("FTICR_meta_all_2021-09-29.csv")
+# data_commat=read.csv("FTICR_commat_rep.merged_all_2021-11-03.csv", row.names = 1)
+# data_cross=read.csv("FTICR_cross.table_rep.merged_all_2021-11-03.csv", row.names = 2) #37,528 formula 
+# data_meta=read.csv("FTICR_meta_all_2021-09-29.csv")
 
-#
+# Adding relative paths (-MS)
+data_commat=read.csv("./1_data.cleaning/output/FTICR_commat_rep.merged_all_2021-11-03.csv", row.names = 1)
+data_cross=read.csv("./1_data.cleaning/output/FTICR_cross.table_rep.merged_all_2021-11-03.csv", row.names = 2) #37,528 formula 
+data_meta=read.csv("./1_data.cleaning/output/FTICR_meta_all_2021-09-29.csv")
 
-#Script to find inflection based on second derivative: https://cran.r-project.org/web/packages/inflection/vignettes/inflectionMissionImpossible.html
+#Script to find inflection based on second derivative:
+#https://cran.r-project.org/web/packages/inflection/vignettes/inflectionMissionImpossible.html
 
 #2 tables: water and sediment
 rownames(data_commat)
@@ -326,16 +330,18 @@ water=data_commat [94:188, ]
 rownames(water) #95 samples
 
 
-
 #Occupancy-Frequency  WATER
-sum_water=data.frame(colSums(water))
-df_water=data_frame(table(sum_water))
+# how often were MF found across water samples?
+sum_water=data.frame(colSums(water)) # sum of presence-absence = number of sites present
+df_water=data_frame(table(sum_water)) # transform to counts of MF that were found in 1, 2, 3 sites and so on...
 table(sum_water) #for visualization of results
 df_water2=df_water[-1,] #remove First cell, which is number of formulae = 0. Means we found 9,575 formulae were absent in water samples (compared to the merged table with sediment samples)
 df_water2$occupancy=seq(1:95) #95 is the number of water samples
 colnames(df_water2)[1]="frequency"
 
 #SEDIMENT
+# how often were MF found across sediment samples?
+# Sequence of code is same as water samples.
 sum_sed=data.frame(colSums(sed))
 df_sed=data_frame(table(sum_sed))
 table(sum_sed) #for visualization of results
@@ -346,23 +352,25 @@ colnames(df_sed2)[1]="frequency"
 
 #Plots
 ggplot(df_water2, aes(x=occupancy, y=log(frequency)))+ geom_point() + labs(x="occupancy", title="Water, whole dataset - all")
-setwd("C:/Users/micha/OneDrive/Documentos/GitHub/whondrs-coresat-topic1/Analyses/Michaela/")
-ggsave("FreqXoccupancy_Water_All.png", dpi=250)
+#setwd("C:/Users/micha/OneDrive/Documentos/GitHub/whondrs-coresat-topic1/Analyses/Michaela/")
+ggsave("3_emergent.threshold/prelim_figures/FreqXoccupancy_Water_All.png", dpi=250)
 
 
 ggplot(df_sed2, aes(x=occupancy, y=log(frequency)))+ geom_point() + labs(x="occupancy", title="Sediment, whole dataset - all")
-ggsave("FreqXoccupancy_Sed_All.png", dpi=250)
+ggsave("3_emergent.threshold/prelim_figures/FreqXoccupancy_Sed_All.png", dpi=250)
 
+
+# Re-do the whole process with the other two rarity cutoffs
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%55#
 # Rar1 - removes 36.6% of MF#
 #%%%%%%%%%%%%%%%%%%%%%%%%%%#
 
 #Path:
-setwd("C:/Users/micha/OneDrive/Documentos/GitHub/whondrs-coresat-topic1/Dataset/")
+#setwd("C:/Users/micha/OneDrive/Documentos/GitHub/whondrs-coresat-topic1/Dataset/")
 
-data_commat_rar1=read.csv("FTICR_commat_rep.merged_rar1_2021-11-03.csv", row.names = 1)
-data_cross_rar1=read.csv("FTICR_cross.table_rep.merged_rar1_2021-11-03.csv", row.names = 2) #37,528 formula 
-data_meta=read.csv("FTICR_meta_all_2021-09-29.csv")
+data_commat_rar1=read.csv("./1_data.cleaning/output/FTICR_commat_rep.merged_rar1_2021-11-03.csv", row.names = 1)
+data_cross_rar1=read.csv("./1_data.cleaning/output/FTICR_cross.table_rep.merged_rar1_2021-11-03.csv", row.names = 2) #37,528 formula 
+data_meta=read.csv("./1_data.cleaning/output/FTICR_meta_all_2021-09-29.csv")
 
 
 #2 tables: water and sediment
@@ -393,23 +401,21 @@ colnames(df_sed2_rar1)[1]="frequency"
 
 #Plots
 ggplot(df_water2_rar1, aes(x=occupancy, y=log(frequency)))+ geom_point() + labs(x="occupancy", title="Water, Remove present 1 site")
-setwd("C:/Users/micha/OneDrive/Documentos/GitHub/whondrs-coresat-topic1/Analyses/Michaela/")
-ggsave("FreqXoccupancy_Water_Rar1.png", dpi=250)
-
+#setwd("C:/Users/micha/OneDrive/Documentos/GitHub/whondrs-coresat-topic1/Analyses/Michaela/")
+ggsave("./3_emergent.threshold/prelim_figures/FreqXoccupancy_Water_Rar1.png", dpi=250)
 
 ggplot(df_sed2_rar1, aes(x=occupancy, y=log(frequency)))+ geom_point() + labs(x="occupancy", title="Sediment, Remove present 1 site")
-ggsave("FreqXoccupancy_Sed_Rar1.png", dpi=250)
+ggsave("./3_emergent.threshold/prelim_figures/FreqXoccupancy_Sed_Rar1.png", dpi=250)
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%55#
 # Rar2 - removes 48.6% of MF#
 #%%%%%%%%%%%%%%%%%%%%%%%%%%#
 
 #Path:
-setwd("C:/Users/micha/OneDrive/Documentos/GitHub/whondrs-coresat-topic1/Dataset/")
-
-data_commat_rar2=read.csv("FTICR_commat_rep.merged_rar2_2021-11-03.csv", row.names = 1)
-data_cross_rar2=read.csv("FTICR_cross.table_rep.merged_rar2_2021-11-03.csv", row.names = 2) #37,528 formula 
-data_meta=read.csv("FTICR_meta_all_2021-09-29.csv")
+#setwd("C:/Users/micha/OneDrive/Documentos/GitHub/whondrs-coresat-topic1/Dataset/")
+data_commat_rar2=read.csv("./1_data.cleaning/output/FTICR_commat_rep.merged_rar2_2021-11-03.csv", row.names = 1)
+data_cross_rar2=read.csv("./1_data.cleaning/output/FTICR_cross.table_rep.merged_rar2_2021-11-03.csv", row.names = 2) #37,528 formula 
+data_meta=read.csv("./1_data.cleaning/output/FTICR_meta_all_2021-09-29.csv")
 
 
 #2 tables: water and sediment
@@ -439,9 +445,163 @@ colnames(df_sed2_rar2)[1]="frequency"
 
 #Plots
 ggplot(df_water2_rar2, aes(x=occupancy, y=log(frequency)))+ geom_point() + labs(x="occupancy", title="Water, Remove present 2 sites")
-setwd("C:/Users/micha/OneDrive/Documentos/GitHub/whondrs-coresat-topic1/Analyses/Michaela/")
-ggsave("FreqXoccupancy_Water_Rar2.png", dpi=250)
+#setwd("C:/Users/micha/OneDrive/Documentos/GitHub/whondrs-coresat-topic1/Analyses/Michaela/")
+ggsave("./3_emergent.threshold/prelim_figures/FreqXoccupancy_Water_Rar2.png", dpi=250)
 
 
 ggplot(df_sed2_rar2, aes(x=occupancy, y=log(frequency)))+ geom_point() + labs(x="occupancy", title="Sediment, Remove present 2 sites")
-ggsave("FreqXoccupancy_Sed_Rar2.png", dpi=250)
+ggsave("./3_emergent.threshold/prelim_figures/FreqXoccupancy_Sed_Rar2.png", dpi=250)
+
+
+#-- Start: Addition by MS
+# Find points of maximum deceleration to identify emergent thresholds -----------------------
+library(data.table)
+library(plyr)
+library(ggpubr)
+
+# Define functions to find points of maximum acceleration/deceleration ----------------------
+# Functions published in:
+# Stadler M, del Giorgio PA. ISME J 2021. 
+# Originally modified from Tommy's answer at: https://stackoverflow.com/questions/6836409/finding-local-maxima-and-minima
+
+# Identify positions of local maxima
+# this function is very sensitive some quality control has to be done afterwards
+localMaxima <- function(x) {
+  # Use -Inf instead if x is numeric (non-integer)
+  # Use .Machine$integer.max instead of Inf for integer
+  y <- diff(c(-Inf, x)) > 0L
+  # returns logical vector with which numbers in 1st derivative are positive
+  rle(y)$lengths
+  # returns how often the same value (i.e. TRUE) repeats in a sequence without being interrupted
+  # and when there is a switch from T to F
+  y <- cumsum(rle(y)$lengths)
+  # returns vector with cumulating the sum of TRUE and FALSE observations = returns location of switch from T to F
+  y <- y[seq.int(1L, length(y), 2L)]
+  # samples every second location (i.e. switch to TRUE)
+  
+  y
+  # return locations of local maxima
+}
+
+localMinima <- function(x) {
+  # Use -Inf instead if x is numeric (non-integer)
+  # Use .Machine$integer.max instead of Inf for integer
+  y <- diff(c(Inf, x)) < 0L
+  # returns logical vector with which numbers in 1st derivative are positive
+  rle(y)$lengths
+  # returns how often the same value (i.e. TRUE) repeats in a sequence without being interrupted
+  # and when there is a switch from T to F
+  y <- cumsum(rle(y)$lengths)
+  # returns vector with cumulating the sum of TRUE and FALSE observations = returns location of switch from T to F
+  y <- y[seq.int(1L, length(y), 2L)]
+  # samples every second location (i.e. switch to TRUE)
+  
+  y
+  # return locations of local minima
+}
+
+# Merge all data sets into a list for parallel processing --------------------
+data.list <- list(df_water2, df_sed2,
+                  df_water2_rar1, df_sed2_rar1,
+                  df_water2_rar2, df_sed2_rar2)
+names(data.list) <- c("SW_all", "SED_all",
+                      "SW_rar1", "SED_rar1",
+                      "SW_rar2", "SED_rar2")
+
+# Example data set to write function
+#x<- df_water2_rar1
+
+# We're using smooth spline here instead of defining a function and getting a derivative from the function
+# as described in https://cran.r-project.org/web/packages/inflection/vignettes/inflectionMissionImpossible.html
+# as it is hard to come up with a function describing the observed pattern
+# not exponential, not logarithmic etc
+
+em.list <- llply(data.list, function(x){
+  # take log
+  x$log.freq <- log(x$frequency)
+  # make a smooth curve
+  spl <- smooth.spline(x$occupancy, x$log.freq, spar = 0.5)
+  # predict to get fit
+  pred <- predict(spl)
+  # get second derivative
+  sec <- predict(spl, deriv = 2) 
+  
+  options(scipen = 999) # avoid scientific annotations
+  # get one plot with raw numbers (non-log)
+  raw <- ggplot() +
+    theme_pubr() +
+    annotate(xmax = x$occupancy[localMinima(sec$y)[2]],
+             xmin = min(x$occupancy),
+             ymin = -Inf, ymax = Inf, geom = "rect", alpha = 0.2, fill = "tomato") +
+    annotate(xmax = max(x$occupancy),
+             xmin = x$occupancy[localMinima(sec$y)[2]],
+             ymin = -Inf, ymax = Inf, geom = "rect", alpha = 0.2, fill = "aquamarine") +
+    geom_line(aes(x = x$occupancy, y = x$frequency)) +
+    geom_point(aes(x = x$occupancy[localMaxima(sec$y)[1:2]],
+                   y = x$frequency[localMaxima(sec$y)[1:2]]), colour = "tomato") +
+    geom_point(aes(x = x$occupancy[localMinima(sec$y)[1:2]],
+                   y = x$frequency[localMinima(sec$y)[1:2]]), colour = "royalblue") +
+    labs(x = "", y = "Frequency") +
+    theme(axis.title = element_text(size = 9))
+  
+  # get another plot with data used to identify the points of maximum acceleration and minimum deceleration
+  logged <- ggplot() +
+    theme_pubr() +
+    annotate(xmax = pred$x[localMinima(sec$y)[2]],
+             xmin = min(x$occupancy),
+             ymin = -Inf, ymax = Inf, geom = "rect", alpha = 0.2, fill = "tomato") +
+    annotate(xmax = max(pred$x),
+             xmin = pred$x[localMinima(sec$y)[2]],
+             ymin = -Inf, ymax = Inf, geom = "rect", alpha = 0.2, fill = "aquamarine") +
+    geom_line(aes(x = pred$x, y = pred$y)) +
+    geom_point(aes(x = x$occupancy, y = x$log.freq), alpha = 0.5, colour = "black") +
+    geom_point(aes(x = pred$x[localMaxima(sec$y)[1:2]],
+                   y = pred$y[localMaxima(sec$y)[1:2]]), colour = "tomato") +
+    geom_point(aes(x = pred$x[localMinima(sec$y)[1:2]],
+                   y = pred$y[localMinima(sec$y)[1:2]]), colour = "royalblue") +
+    labs(x = "", y = "Frequency (log)") +
+    theme(axis.title = element_text(size = 9))
+  
+  # Show second derivative used to find the points
+  deriv <- ggplot() +
+    theme_pubr() +
+    geom_line(aes(x = sec$x, y = sec$y * 1000)) +
+    geom_point(aes(x = sec$x[localMaxima(sec$y)[1:2]],
+                   y = sec$y[localMaxima(sec$y)[1:2]]* 1000), colour = "tomato") +
+    geom_point(aes(x = sec$x[localMinima(sec$y)[1:2]],
+                   y = sec$y[localMinima(sec$y)[1:2]]* 1000), colour = "royalblue") +
+    labs(x = "", y = expression(paste("Acceleration x10"^3, " (2"^"nd", " derivative)"))) +
+    theme(axis.title = element_text(size = 9))
+  
+  p <- ggarrange(raw, logged, deriv, ncol = 3, labels = "auto")
+  # add x axis title to be in the middle of two panels
+  
+  # Extract identified threshold
+  thres.df <- data.frame(cs.flag = c("Satellite", "Core"),
+                    occup.thres.min = c(min(x$occupancy), localMinima(sec$y)[2]+1),
+                    occup.thres.max = c(localMinima(sec$y)[2], max(x$occupancy)))
+  
+  out <- list(thres.df, p)
+  return(out)
+})
+
+# Extract results --------------------------------------------------------------------------
+# Identified thresholds
+thres.df <- ldply(em.list, "[[", 1)
+# Save as table
+write.table(thres.df, "./3_emergent.threshold/output/emergent_tresholds.csv", sep = ",",
+            row.names = F)
+
+# Save generated plots
+title <- c("Surface water - all","Sediment - all",
+           "Surface water - rar1","Sediment - rar1",
+           "Surface water - rar2","Sediment - rar2")
+
+for(i in 1:length(em.list)){
+  p <- annotate_figure(em.list[[i]][[2]], top = text_grob(title[i]),
+                  bottom = "Occupancy")
+  ggsave(paste0("./3_emergent.threshold/prelim_figures/em.thres_", names(em.list)[i],
+         ".png"), p, width = 25, height = 9, unit = "cm", dpi = 250)
+}
+
+#-- End: Addition by MS
