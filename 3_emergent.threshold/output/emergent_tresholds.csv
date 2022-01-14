@@ -1,0 +1,13 @@
+".id","cs.flag","occup.thres.min","occup.thres.max"
+"SW_all","Satellite",1,18
+"SW_all","Core",19,95
+"SED_all","Satellite",1,18
+"SED_all","Core",19,93
+"SW_rar1","Satellite",1,18
+"SW_rar1","Core",19,95
+"SED_rar1","Satellite",1,18
+"SED_rar1","Core",19,93
+"SW_rar2","Satellite",1,18
+"SW_rar2","Core",19,95
+"SED_rar2","Satellite",1,11
+"SED_rar2","Core",12,93
