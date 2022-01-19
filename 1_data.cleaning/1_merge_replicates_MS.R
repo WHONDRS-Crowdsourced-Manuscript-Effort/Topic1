@@ -21,175 +21,158 @@ com.mat <- read.csv("./1_data.cleaning/output/FTICR_commat_2021-09-29.csv",
 com.mat[1:5,1:5]
 
 # cross table
-cross <- read.csv("./1_data.cleaning/output/FTICR_crosstable_2021-09-29.csv",
-            sep = ",", stringsAsFactors =  F) %>% setDT()
-head(cross)
+# cross <- read.csv("./1_data.cleaning/output/FTICR_crosstable_2021-09-29.csv",
+#             sep = ",", stringsAsFactors =  F) %>% setDT()
+# head(cross)
 
 meta <- read.csv("./1_data.cleaning/output/FTICR_meta_all_2021-09-29.csv",
                  sep = ",", stringsAsFactors = F) %>% setDT()
 head(meta)
 
+# Add peak data
+peaks <- read.csv("./1_data.cleaning/output/peaks/FTICR_raw.peaks_commat_2022-01-18.csv",
+                  sep = ",", stringsAsFactors = F) %>% setDT()
 
-# Remove rare peaks ---------------------------------------------------------------------
-# Check if there are several peaks within the same molecular formula (= Mass)
-
-mult.peaks <- cross[, .(n.peaks = .N), by = .(MolForm)]
-mult.peaks[n.peaks > 1,]
-# no, good we can merge peaks by molecular formula
-rm(mult.peaks)
-
-# Remove MF that only appear in <= 2 samples
-# melt community matrix for easy classification
+# Merge replicates ----------------------------------------------------------------------
+# melt community matrix
 melt.commat <- melt(com.mat, id.vars = "ID", value.name = "PA", variable.name = "MolForm")
-# enumerate frequency of each molecular formulae
-melt.commat[, freq := nrow(.SD[PA > 0,]), by = .(MolForm)]
-length(unique(melt.commat[freq <= 2,]$MolForm))
-# 18225 molecular formulae of...
-length(unique(melt.commat$MolForm))
-# 37528 molecular formulae appear <= 2 times in the whole dataset, which means...
-length(unique(melt.commat[freq <= 2,]$MolForm)) * 100/ length(unique(melt.commat$MolForm))
-# We will loose 48.56 % of the data
 
-# Ok, we will make one dataset with this 2 sample rarity cutoff
-rar2 <- melt.commat[freq > 2,]
+melt.commat <- melt.commat[,c("sample.type","sample.name", "location.id", "extra") := 
+         list(sapply(str_split(ID, pattern = "_"),"[[",1),
+              sapply(str_split(ID, pattern = "_"),"[[",2),
+              sapply(str_split(ID, pattern = "_"),"[[",3),
+              sapply(str_split(ID, pattern = "_"),"[[",4))]
 
-# Another rarity cutoff could be, 1 sample
-length(unique(melt.commat[freq < 2,]$MolForm))
-# 13720 molecular formulae of...
-length(unique(melt.commat$MolForm))
-# 37528 molecular formulae appear <= 2 times in the whole dataset, which means...
-length(unique(melt.commat[freq < 2,]$MolForm)) * 100/ length(unique(melt.commat$MolForm))
-# We will loose 36.56 % of the data
+# Sediments = replicates are in col 'location.id',
+# Surface waters = replicates are in col 'extra'
+colnames(melt.commat)[1] <- "old.ID"
+# Add new ID
+melt.commat[, ID := paste(sample.type, sample.name, sep = "_")]
+# calculate the number of replicates for each site
+replicates <- melt.commat %>% dplyr::select(-MolForm, -PA) %>% distinct()
+replicates <- replicates[, .(n.replicate = .N), by = .(ID)]
 
-# We will make one dataset with a 1 sample rarity cutoff
-rar1 <- melt.commat[freq >= 2,]
+# Create replicate column
+# Change D, M, U to replicates
+melt.commat[sample.type == "SED", replicate.id := factor(location.id, levels = c("D","M","U"),
+                                                         labels = c("r1","r2","r3"))]
+# Add surface water
+melt.commat[sample.type == "SW", replicate.id := factor(extra, levels = c("1","2","3"),
+                                                        labels = c("r1","r2","r3"))]
 
-# So, we do the replicate merging for each site/sample type across three datasets:
-# 1) Whole dataset (no rarity cutoff, "all")
-# 2) Remove MF that are only present in 1 site ("rar1")
-# 3) Remove MF that are only present in 2 sites ("rar2")
+# sanity checks
+melt.commat[is.na(replicate.id),] # any rows without a replicate ID? -> no
+levels(factor(melt.commat$replicate.id)) # ok, three replicates
 
-# Put the three dataset into list for easy processing
-com.ls <- list(melt.commat, rar1, rar2)
+# Cast replicates into columns
+rep.dt <- dcast(melt.commat, ID + MolForm ~ replicate.id, value.var = "PA")
 
-# Write function to merge replicates
+# Calculate how many replicates observed a MF
+rep.dt[, rep.sum := rowSums(.SD, na.rm = T), .SDcols = c("r1","r2","r3")]
+rep.dt[replicates, n.rep := i.n.replicate, on = .(ID)]
 
-# Make function, could not fine one in base R
-# Create function that can merge binary (presence absence) results
-as.binary <- function(x){
-  x <- ifelse(sum(x) >= 1, 1, 0)
-  return(x)
-}
+# Keep two data frames
+# 1. Keep observation if MF was found at least in one replicate
+# 2. Keep observation if MF was found at least in two replicates
+# BUT if there is only one replicate, we will keep the observation
 
-merged.ls <- llply(com.ls, function(x){
-   # first we split the ID column
-  # tidyr::separate is too heavy, let's do a data.table solution
-  #x <- x %>% separate(col = "ID", into = c("sample.type","sample.name", "location.id", "extra"), sep = "_", remove = F)
-  x <- x[,c("sample.type","sample.name", "location.id", "extra") := 
-      list(sapply(str_split(ID, pattern = "_"),"[[",1),
-           sapply(str_split(ID, pattern = "_"),"[[",2),
-           sapply(str_split(ID, pattern = "_"),"[[",3),
-           sapply(str_split(ID, pattern = "_"),"[[",4))]
-  # Sediments = replicates are in col 'location.id',
-  # Surface waters = replicates are in col 'extra'
-  merged <- x[, .(PA = as.binary(PA)), by = .(sample.type, sample.name, MolForm)]
-  # sanity check
-  #length(unique(merged$MolForm)) == length(unique(x$MolForm))
-  
-  # create new ID
-  merged[, ID := paste(sample.type, sample.name, sep = "_")]
-  # cast into wide format
-  merged.commat <- dcast(merged, ID ~ MolForm, value.var = "PA")
-  return(merged.commat)
-})
+one.rep <- rep.dt[n.rep > 1, PA := ifelse(rep.sum >= 1, 1, 0)] # at least in one replicate
+one.rep <- one.rep[n.rep == 1, PA := ifelse(rep.sum == 1, 1, 0)]
+# Cast into community matrix
+one.commat <- dcast(one.rep, ID ~ MolForm, value.var = "PA")
 
-# next, get cross table for each subset
-cross.ls <- llply(merged.ls, function(x){
-  subcross <- cross[MolForm %in% colnames(x),]
-  return(subcross)
-})
+two.rep <- rep.dt[, PA := NULL]
+two.rep <- rep.dt[n.rep > 1, PA := ifelse(rep.sum >= 2, 1, 0)] # at least in two replicates
+two.rep <- rep.dt[n.rep == 1, PA := ifelse(rep.sum == 1, 1, 0)]
+# Cast into community matrix
+two.commat <- dcast(two.rep, ID ~ MolForm, value.var = "PA")
 
-# Sanity check
-# melt.commat <- melt(merged.ls[[1]], id.vars = "ID", value.name = "PA", variable.name = "MolForm")
-# # any not binary?
-# melt.commat[PA > 1, ] # no
+# some sanity check
+any(rowSums(one.commat[,-1]) != rowSums(two.commat[,-1])) # TRUE = ok
 
-# Revert to original meta data ---------------------------------------------------------------------------------------
-# Get original meta data
-header <- colnames(read.csv("./1_data.cleaning/raw.data/Surface/WHONDRS_S19S_Metadata_v2.csv",
-                   sep = ",", stringsAsFactors = F, header = T))
-surface <- read.csv("./1_data.cleaning/raw.data/Surface/WHONDRS_S19S_Metadata_v2.csv",
-                    sep = ",", stringsAsFactors = F, header = F, skip = 2) %>% setDT()
-colnames(surface) <- header
+# Save
+write.table(one.commat,
+            paste0("./1_data.cleaning/output/FTICR_commat_rep.merged1_", Sys.Date(), ".csv"), sep = ",",
+            row.names = F)
+write.table(two.commat,
+            paste0("./1_data.cleaning/output/FTICR_commat_rep.merged2_", Sys.Date(), ".csv"), sep = ",",
+            row.names = F)
 
-header <- colnames(read.csv("./1_data.cleaning/raw.data/Sediment/WHONDRS_S19S_Metadata_v3.csv",
-                            sep = ",", stringsAsFactors = F, header = T))
-sed <- read.csv("./1_data.cleaning/raw.data/Sediment/WHONDRS_S19S_Metadata_v3.csv",
-                    sep = ",", stringsAsFactors = F, skip = 2, header = F) %>% setDT()
-colnames(sed) <- header
+# Merge replicate data with meta data
+meta[, merge.id := paste(sample.type, river.id, sep = "_")]
+meta[replicates, no.replicates := i.n.replicate, on = c("merge.id==ID")]
 
-# merge
-colnames(surface) %in% colnames(sed)
-colnames(sed)[!(colnames(sed) %in% colnames(surface))] # Strahler order missing in surface
+# Overwrite
+write.table(meta, paste0("./1_data.cleaning/output/FTICR_meta_all_", Sys.Date(),".csv"),
+            row.names = F, sep = ",")
 
-# clean
-# replace "Not_Provided" with NA to allow correct column types
+rm(two.rep, one.rep, melt.commat, rep.dt)
 
-# merge the stream order from sediment meta
-surface <- surface[sed,c("Stream_Order") := list(i.Stream_Order), on = .(Sample_ID)]
-meta <- surface
-rm(surface, sed)
+# Merge replicates of peaks -------------------------------------------------------------
+peaks <- peaks[,c("sample.type","sample.name", "location.id", "extra") := 
+                             list(sapply(str_split(ID, pattern = "_"),"[[",1),
+                                  sapply(str_split(ID, pattern = "_"),"[[",2),
+                                  sapply(str_split(ID, pattern = "_"),"[[",3),
+                                  sapply(str_split(ID, pattern = "_"),"[[",4))]
 
-allcols <- colnames(meta)
-meta[, (allcols) := lapply(.SD, function(x) ifelse(x == "Not_Provided", NA, x)), .SD = allcols]
+# Sediments = replicates are in col 'location.id',
+# Surface waters = replicates are in col 'extra'
+colnames(peaks)[1] <- "old.ID"
+# Add new ID
+peaks[, ID := paste(sample.type, sample.name, sep = "_")]
 
-# rename Sample_ID to river.id and replace _ with .
-#meta[, river.id := str_replace(Sample_ID, "_", ".")]
+# Create replicate column
+# Change D, M, U to replicates
+peaks[sample.type == "SED", replicate.id := factor(location.id, levels = c("D","M","U"),
+                                                         labels = c("r1","r2","r3"))]
+# Add surface water
+peaks[sample.type == "SW", replicate.id := factor(extra, levels = c("1","2","3"),
+                                                        labels = c("r1","r2","r3"))]
 
-# pH, temp, DO are character, clean
-# take first value in pH, except when there is a ">"
-meta[str_detect(SW_pH, ">"), new.pH := str_extract(SW_pH, pattern = "\\d+\\.*\\d*")]
-meta[!str_detect(SW_pH, ">"), new.pH := str_extract(SW_pH, pattern = "^\\d+\\.*\\d*")]
-meta[, SW_pH := as.numeric(new.pH)][, new.pH := NULL]
+# sanity checks
+peaks[is.na(replicate.id),] # any rows without a replicate ID? -> no
+levels(factor(peaks$replicate.id)) # ok, three replicates
 
-# For temperature, there are ranges, take first value
-meta[, SW_Temp_degC := as.numeric(str_extract(SW_Temp_degC, pattern = "^\\d+\\.*\\d*"))]
+# remove unneeded columns
+peaks[,c("old.ID","sample.type", "sample.name","location.id", "extra") := 
+        list(NULL, NULL, NULL, NULL, NULL)]
 
-# comments in DO, save in separate column
-meta[str_detect(DO_perc.sat, pattern = "calibrated"), DO_comment := "may not be correctly calibrated"]
-meta[, DO_perc.sat := as.numeric(sapply(str_split(DO_perc.sat, pattern = " "), "[[",1))]
-meta[, DO_mg.per.L := as.numeric(sapply(str_split(DO_mg.per.L, pattern = " "), "[[",1))]
+# melt community matrix
+melt.commat <- melt(peaks, id.vars = c("ID","replicate.id"), value.name = "rel.abun", variable.name = "mz")
 
-# duplicate for both SED and SW
-meta <- bind_rows(meta[, sample.type := "SW"],meta[, sample.type := "SED"])
+# Make into presence absence
+melt.commat[, PA := ifelse(rel.abun > 0, 1, 0)]
 
-# rename Sample_ID to river.id and replace _ with .
-meta[, river.id := str_replace(Sample_ID, "_", ".")]
-meta[, ID := paste(sample.type, river.id, sep = "_")]
+# Cast replicates into columns
+rep.dt <- dcast(melt.commat, ID + mz ~ replicate.id, value.var = "PA")
 
-# re-order
-meta <- meta %>% dplyr::select(Study_Code, ID, sample.type:river.id, Date:DO_comment)
+# Calculate how many replicates observed a MF
+rep.dt[, rep.sum := rowSums(.SD, na.rm = T), .SDcols = c("r1","r2","r3")]
+rep.dt[replicates, n.rep := i.n.replicate, on = .(ID)]
 
-# Save -------------------------------------------------------------------------------------------------------
-# Save meta data
-write.table(meta,
-            paste0("./1_data.cleaning/output/FTICR_meta_eachriver_", Sys.Date(),".csv"), sep = ",", dec = ".", row.names = F)
+# Keep two data frames
+# 1. Keep observation if MF was found at least in one replicate
+# 2. Keep observation if MF was found at least in two replicates
+# BUT if there is only one replicate, we will keep the observation
 
-# Save different rarity thresholds
-# create list with names
-save.vec <- c(paste0("./1_data.cleaning/output/FTICR_commat_rep.merged_all_",Sys.Date(),".csv"),
-  paste0("./1_data.cleaning/output/FTICR_commat_rep.merged_rar1_",Sys.Date(),".csv"),
-  paste0("./1_data.cleaning/output/FTICR_commat_rep.merged_rar2_",Sys.Date(),".csv"))
+one.rep <- rep.dt[n.rep > 1, PA := ifelse(rep.sum >= 1, 1, 0)] # at least in one replicate
+one.rep <- one.rep[n.rep == 1, PA := ifelse(rep.sum == 1, 1, 0)]
+# Cast into community matrix
+one.commat <- dcast(one.rep, ID ~ mz, value.var = "PA")
 
-# Save community matrix
-mapply(write.table, merged.ls, save.vec, MoreArgs = list(sep = ",", dec = ".", row.names = F))
+two.rep <- rep.dt[, PA := NULL]
+two.rep <- rep.dt[n.rep > 1, PA := ifelse(rep.sum >= 2, 1, 0)] # at least in two replicates
+two.rep <- rep.dt[n.rep == 1, PA := ifelse(rep.sum == 1, 1, 0)]
+# Cast into community matrix
+two.commat <- dcast(two.rep, ID ~ mz, value.var = "PA")
 
-# Save cross table
-# create list with names
-save.vec <- c(paste0("./1_data.cleaning/output/FTICR_cross.table_rep.merged_all_",Sys.Date(),".csv"),
-              paste0("./1_data.cleaning/output/FTICR_cross.table_rep.merged_rar1_",Sys.Date(),".csv"),
-              paste0("./1_data.cleaning/output/FTICR_cross.table_rep.merged_rar2_",Sys.Date(),".csv"))
+# some sanity check
+any(rowSums(one.commat[,-1]) != rowSums(two.commat[,-1])) # TRUE = ok
 
-mapply(write.table, cross.ls, save.vec, MoreArgs = list(sep = ",", dec = ".", row.names = F))
-
-# Done.
+# Save
+write.table(one.commat,
+            paste0("./1_data.cleaning/output/peaks/FTICR_peaks_commat_rep.merged1_", Sys.Date(), ".csv"), sep = ",",
+            row.names = F)
+write.table(two.commat,
+            paste0("./1_data.cleaning/output/peaks/FTICR_peaks_commat_rep.merged2_", Sys.Date(), ".csv"), sep = ",",
+            row.names = F)

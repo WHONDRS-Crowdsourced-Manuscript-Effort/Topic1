@@ -3,6 +3,10 @@
 # and are the processed versions of the raw FT-ICR-MS data available in the EMS drive.
 # Non-isotopic metabolites with a mass between 200-900 m/z were included in this processed dataset.
 
+# There are two datasets:
+# 1. Only peaks with molecular formulae assigned
+# 2. All peaks
+
 # Set-up -----------------------------------------------------------------------------------
 
 ### Packages -------------------------------------------------------------------------------
@@ -17,7 +21,8 @@ pckgs <- list("tidyverse","data.table")
 invisible(lapply(pckgs, library, character.only = T))
 rm(pckgs, miss.pckgs)
 
-# Read in data ----------------------------------------------------------------------------
+# 1. Only MF ----------------------------------------------------------------------------------
+# Read in data --------------------------------------------------------------------------------
 proc.ft <- read.csv("./1_data.cleaning/raw.data/Processed_S19S_Sediments_Water_2-2_newcode.csv",
                     sep = ",", stringsAsFactors = F) %>% setDT()
 head(proc.ft)[1:5,1:20]
@@ -48,7 +53,7 @@ any(t[,-1] > 1) # FALSE, data is in presence absence
 rm(t)
 # Merge duplicates, take the unique peaks
 
-# Make function, could not fine one in base R
+# Make function, could not find one in base R
 # Create function that can merge duplicate entries and keep binary (presence absence) result
 as.binary <- function(x){
   x <- ifelse(sum(x) >= 1, 1, 0)
@@ -344,5 +349,97 @@ write.table(com.mat, paste0("./1_data.cleaning/output/FTICR_commat_",Sys.Date(),
 
 # cross table
 write.table(var.dt, paste0("./1_data.cleaning/output/FTICR_crosstable_",Sys.Date(),".csv"),
+            sep = ",", row.names = F)
+
+# 2. All peaks incl. without MF -----------------------------------------------------------
+# Read in data ----------------------------------------------------------------------------
+all.peaks <- read.csv("./1_data.cleaning/raw.data/Processed_Clean_S19S_Water_Field_sediments_9-29_Data.csv",
+                      sep = ",", stringsAsFactors = F) %>% setDT()
+dim(all.peaks)
+# 91338 peaks, 505 samples
+# peaks in rows, samples in columns
+
+# Processing to do:
+# - Rename file names to be matching the molecular formulae dataset
+# - Merge replicates
+
+# Any duplicated peaks?
+nrow(all.peaks) == length(unique(all.peaks$X)) # TRUE == no duplicates
+
+# Melt into long-format data frame
+melt.peaks <- melt(all.peaks, id.vars = "X", variable.name = "Sample", value.name = "peak.int")
+
+# Data is not presence-absence but peak intensity
+# Change column name and separate sample column into IDs to unify the naming strategy with the MF data frame
+colnames(melt.peaks)[1] <- "mz"
+
+# naming strategy different between surface water and sediment -> separate
+sed <- melt.peaks[str_detect(Sample,"Field"),]
+sur <- melt.peaks[!(Sample %in% sed$Sample),]
+
+# First separate surface water
+sur <- sur[, c("project.name", "sample.name", "location.id", "unknown") := 
+             tstrsplit(Sample, "_", fixed = T)]
+
+levels(factor(sur$location.id)) # Replicate ID
+levels(factor(sur$unknown)) # p05 all the same
+
+# Extract only replicate from "location.id"
+# and overwrite original column with "U" for upstream so that it matches the sediment ID
+# according to the methods, surface water was only sampled upstream
+sur[, replicate.id := str_extract(location.id, "[:digit:]$")]
+sur[, location.id := "U"] # what does ICR stand for? Necessary? -> remove
+sur[, sample.type := "SW"] # add another sample type identifier
+
+# create new IDs
+# For specific rivers
+sur[, river.id := paste(project.name, sample.name, sep = ".")]
+# true unique (cleaned) identifier
+sur[, ID := paste(sample.type, river.id, location.id, replicate.id, sep = "_")]
+# check if all samples are uniquely identified
+length(unique(sur$Sample)) == length(unique(sur$ID)) # yes
+
+# Next, sediment:
+sed <- sed[, c("project.name", "sample.name", "sample.type", "sampling.type", "location.id", "unknown") := 
+             tstrsplit(Sample, "_", fixed = T)]
+
+levels(factor(sed$location.id)) # location in river, U, M, D = Upstream, Midstream, Downstream
+levels(factor(sed$unknown)) # p1, p15, p2?
+levels(factor(sed$sample.type)) # Only "Sed"
+levels(factor(sed$sampling.type)) # Only "field", probably other samples are "incubation" not included here
+
+# Extract only letter for location ID
+sed[, location.id := str_extract(location.id, "[:alpha:]$")]
+sed[, sample.type := "SED"] # overwrite to all capitals
+
+# create new IDs
+# For specific rivers
+sed[, river.id := paste(project.name, sample.name, sep = ".")]
+# true unique (cleaned) identifier
+sed[, ID := paste(sample.type, river.id, location.id, sampling.type, sep = "_")]
+# check if all samples are uniquely identified
+length(unique(sed$Sample)) == length(unique(sed$ID)) # yes
+
+# clean columns for merging back
+sed <- sed %>%
+  mutate(replicate.id = NA) %>%
+  select(ID, river.id, sample.type, location.id, sampling.type, replicate.id,
+         original.id = Sample, mz, peak.int)
+sur <- sur %>%
+  mutate(sampling.type = NA) %>%
+  select(ID, river.id, sample.type, location.id, sampling.type, replicate.id,
+         original.id = Sample, mz, peak.int)
+
+# Merge
+cleaned.dt <- bind_rows(sed,sur)
+# last check
+nrow(melt.peaks) == nrow(cleaned.dt) # yes
+# remove obsolete objects
+rm(melt.peaks, sed, sur)
+
+# Export "community" matrix
+# peaks in cols and ID rows
+com.mat <- dcast(cleaned.dt, ID ~ mz, value.var = "peak.int")
+write.table(com.mat, paste0("./1_data.cleaning/output/peaks/FTICR_raw.peaks_commat_",Sys.Date(),".csv"),
             sep = ",", row.names = F)
 
