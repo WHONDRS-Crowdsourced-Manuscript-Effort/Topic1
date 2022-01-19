@@ -89,8 +89,35 @@ stats.tb <- ldply(rar.ls, function(x){
   return(out)
 })
 
+# Add no rarity-cutoff stats
+all.ls <- llply(df.list, function(x){
+  # melt community matrix for easy classification
+  melt.commat <- melt(x, id.vars = "ID", value.name = "PA", variable.name = "MolForm")
+  # enumerate frequency of each molecular formulae
+  melt.commat[, freq := nrow(.SD[PA > 0,]), by = .(MolForm)]
+  
+  stats.df.all <- data.frame(no.mf.kept = length(unique(melt.commat[freq >= 1,]$MolForm)),
+                             no.mf = length(unique(melt.commat$MolForm))) %>%
+    mutate(perc.kept = no.mf.kept * 100 / no.mf,
+           rarity.cutoff = "None")
+  return(stats.df.all)
+})
+
+names(all.ls) <- c("Molecular formulae (mf)-MF in at least 1 replicate",
+                   "Molecular formulae (mf)-MF in at least 2 replicates",
+                   "Peaks (mz)-MZ in at least 1 replicate",
+                   "Peaks (mz)-MZ in at least 2 replicates")
+all.tb <- ldply(all.ls, bind_rows)
+
+# Insert in-between
+stats.tb <- rbind(all.tb[1,], stats.tb[1:2,],
+           all.tb[2,], stats.tb[3:4,],
+      all.tb[3,], stats.tb[5:6,],
+      all.tb[4,], stats.tb[7:8,])
+
 # Clean data frame to export
 stats.tb <- stats.tb %>% select(.id, rarity.cutoff, no.mf, everything()) %>%
+  mutate(perc.kept = round(perc.kept, 1)) %>%
   separate(.id, into = c("Dataset","Replicate merging"), sep = "-")
 colnames(stats.tb)[3:6] <- c("Used rarity cutoff",
                              "Original number of mf/mz",
