@@ -1,0 +1,73 @@
+".id","dataset","replicate.merging","rarity.cutoff","sample.type","cs.flag","occup.thres.min","occup.thres.max"
+"mf_rep.merged1_all_water","Molecular formulae","rep.merged1","all","water","Satellite",1,18
+"mf_rep.merged1_all_water","Molecular formulae","rep.merged1","all","water","In-between",19,90
+"mf_rep.merged1_all_water","Molecular formulae","rep.merged1","all","water","Core",91,95
+"mf_rep.merged1_all_sed","Molecular formulae","rep.merged1","all","sed","Satellite",1,18
+"mf_rep.merged1_all_sed","Molecular formulae","rep.merged1","all","sed","In-between",19,92
+"mf_rep.merged1_all_sed","Molecular formulae","rep.merged1","all","sed","Core",93,93
+"mf_rep.merged1_rar1_water","Molecular formulae","rep.merged1","rar1","water","Satellite",1,18
+"mf_rep.merged1_rar1_water","Molecular formulae","rep.merged1","rar1","water","In-between",19,90
+"mf_rep.merged1_rar1_water","Molecular formulae","rep.merged1","rar1","water","Core",91,95
+"mf_rep.merged1_rar1_sed","Molecular formulae","rep.merged1","rar1","sed","Satellite",1,18
+"mf_rep.merged1_rar1_sed","Molecular formulae","rep.merged1","rar1","sed","In-between",19,92
+"mf_rep.merged1_rar1_sed","Molecular formulae","rep.merged1","rar1","sed","Core",93,93
+"mf_rep.merged1_rar2_water","Molecular formulae","rep.merged1","rar2","water","Satellite",1,18
+"mf_rep.merged1_rar2_water","Molecular formulae","rep.merged1","rar2","water","In-between",19,90
+"mf_rep.merged1_rar2_water","Molecular formulae","rep.merged1","rar2","water","Core",91,95
+"mf_rep.merged1_rar2_sed","Molecular formulae","rep.merged1","rar2","sed","Satellite",1,11
+"mf_rep.merged1_rar2_sed","Molecular formulae","rep.merged1","rar2","sed","In-between",12,92
+"mf_rep.merged1_rar2_sed","Molecular formulae","rep.merged1","rar2","sed","Core",93,93
+"mf_rep.merged2_all_water","Molecular formulae","rep.merged2","all","water","Satellite",1,11
+"mf_rep.merged2_all_water","Molecular formulae","rep.merged2","all","water","In-between",12,92
+"mf_rep.merged2_all_water","Molecular formulae","rep.merged2","all","water","Core",93,95
+"mf_rep.merged2_all_sed","Molecular formulae","rep.merged2","all","sed","Satellite",1,16
+"mf_rep.merged2_all_sed","Molecular formulae","rep.merged2","all","sed","In-between",17,92
+"mf_rep.merged2_all_sed","Molecular formulae","rep.merged2","all","sed","Core",93,93
+"mf_rep.merged2_rar1_water","Molecular formulae","rep.merged2","rar1","water","Satellite",1,11
+"mf_rep.merged2_rar1_water","Molecular formulae","rep.merged2","rar1","water","In-between",12,92
+"mf_rep.merged2_rar1_water","Molecular formulae","rep.merged2","rar1","water","Core",93,95
+"mf_rep.merged2_rar1_sed","Molecular formulae","rep.merged2","rar1","sed","Satellite",1,8
+"mf_rep.merged2_rar1_sed","Molecular formulae","rep.merged2","rar1","sed","In-between",9,92
+"mf_rep.merged2_rar1_sed","Molecular formulae","rep.merged2","rar1","sed","Core",93,93
+"mf_rep.merged2_rar2_water","Molecular formulae","rep.merged2","rar2","water","Satellite",1,11
+"mf_rep.merged2_rar2_water","Molecular formulae","rep.merged2","rar2","water","In-between",12,92
+"mf_rep.merged2_rar2_water","Molecular formulae","rep.merged2","rar2","water","Core",93,95
+"mf_rep.merged2_rar2_sed","Molecular formulae","rep.merged2","rar2","sed","Satellite",1,4
+"mf_rep.merged2_rar2_sed","Molecular formulae","rep.merged2","rar2","sed","In-between",5,92
+"mf_rep.merged2_rar2_sed","Molecular formulae","rep.merged2","rar2","sed","Core",93,93
+"mz_rep.merged1_all_water","Peaks","rep.merged1","all","water","Satellite",1,18
+"mz_rep.merged1_all_water","Peaks","rep.merged1","all","water","In-between",19,90
+"mz_rep.merged1_all_water","Peaks","rep.merged1","all","water","Core",91,95
+"mz_rep.merged1_all_sed","Peaks","rep.merged1","all","sed","Satellite",1,18
+"mz_rep.merged1_all_sed","Peaks","rep.merged1","all","sed","In-between",19,92
+"mz_rep.merged1_all_sed","Peaks","rep.merged1","all","sed","Core",93,93
+"mz_rep.merged1_rar1_water","Peaks","rep.merged1","rar1","water","Satellite",1,18
+"mz_rep.merged1_rar1_water","Peaks","rep.merged1","rar1","water","In-between",19,90
+"mz_rep.merged1_rar1_water","Peaks","rep.merged1","rar1","water","Core",91,95
+"mz_rep.merged1_rar1_sed","Peaks","rep.merged1","rar1","sed","Satellite",1,18
+"mz_rep.merged1_rar1_sed","Peaks","rep.merged1","rar1","sed","In-between",19,92
+"mz_rep.merged1_rar1_sed","Peaks","rep.merged1","rar1","sed","Core",93,93
+"mz_rep.merged1_rar2_water","Peaks","rep.merged1","rar2","water","Satellite",1,18
+"mz_rep.merged1_rar2_water","Peaks","rep.merged1","rar2","water","In-between",19,90
+"mz_rep.merged1_rar2_water","Peaks","rep.merged1","rar2","water","Core",91,95
+"mz_rep.merged1_rar2_sed","Peaks","rep.merged1","rar2","sed","Satellite",1,18
+"mz_rep.merged1_rar2_sed","Peaks","rep.merged1","rar2","sed","In-between",19,92
+"mz_rep.merged1_rar2_sed","Peaks","rep.merged1","rar2","sed","Core",93,93
+"mz_rep.merged2_all_water","Peaks","rep.merged2","all","water","Satellite",1,13
+"mz_rep.merged2_all_water","Peaks","rep.merged2","all","water","In-between",14,92
+"mz_rep.merged2_all_water","Peaks","rep.merged2","all","water","Core",93,95
+"mz_rep.merged2_all_sed","Peaks","rep.merged2","all","sed","Satellite",1,16
+"mz_rep.merged2_all_sed","Peaks","rep.merged2","all","sed","In-between",17,92
+"mz_rep.merged2_all_sed","Peaks","rep.merged2","all","sed","Core",93,93
+"mz_rep.merged2_rar1_water","Peaks","rep.merged2","rar1","water","Satellite",1,13
+"mz_rep.merged2_rar1_water","Peaks","rep.merged2","rar1","water","In-between",14,92
+"mz_rep.merged2_rar1_water","Peaks","rep.merged2","rar1","water","Core",93,95
+"mz_rep.merged2_rar1_sed","Peaks","rep.merged2","rar1","sed","Satellite",1,16
+"mz_rep.merged2_rar1_sed","Peaks","rep.merged2","rar1","sed","In-between",17,92
+"mz_rep.merged2_rar1_sed","Peaks","rep.merged2","rar1","sed","Core",93,93
+"mz_rep.merged2_rar2_water","Peaks","rep.merged2","rar2","water","Satellite",1,11
+"mz_rep.merged2_rar2_water","Peaks","rep.merged2","rar2","water","In-between",12,92
+"mz_rep.merged2_rar2_water","Peaks","rep.merged2","rar2","water","Core",93,95
+"mz_rep.merged2_rar2_sed","Peaks","rep.merged2","rar2","sed","Satellite",1,16
+"mz_rep.merged2_rar2_sed","Peaks","rep.merged2","rar2","sed","In-between",17,92
+"mz_rep.merged2_rar2_sed","Peaks","rep.merged2","rar2","sed","Core",93,93
