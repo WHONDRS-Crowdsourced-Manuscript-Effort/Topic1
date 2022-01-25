@@ -4,3 +4,7 @@
 .Ruserdata
 README.html
 1_data.cleaning/raw.data/*.csv
+1_data.cleaning/output/FTICR_commat_*.csv
+1_data.cleaning/output/FTICR_crosstable_*.csv
+1_data.cleaning/output/peaks/*.csv
+
