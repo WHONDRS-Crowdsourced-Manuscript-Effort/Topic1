@@ -108,6 +108,8 @@ names(mz.ls) <- c("mz_rep.merged1_all", "mz_rep.merged1_rar1", "mz_rep.merged1_r
 # Run re-formatting on all data ----------------------------------------------------------
 all.ls <- c(mf.ls, mz.ls)
 
+x<- all.ls[[1]]
+
 proc.ls <- llply(all.ls, function(x){
   setDT(x)
   # Separate sediment and surface water by ID and remove ID column
@@ -115,8 +117,10 @@ proc.ls <- llply(all.ls, function(x){
   water <- x[str_detect(ID, "SW"),][,-1]
   
   # Process surface water
+  
   # how often were MF found across water samples?
   sum_water <- data.frame(colSums(water)) # sum of presence-absence = number of sites present
+  # Make into percentage
   df_water <- tibble(table(sum_water)) # transform to counts of MF that were found in 1, 2, 3 sites and so on...
   #table(sum_water) #for visualization of results
   df_water <- df_water[-1,] #remove First cell, which is number of formulae = 0. Means we found 9,575 formulae were absent in water samples (compared to the merged table with sediment samples)
@@ -225,7 +229,34 @@ names(flattened.ls) <- c("mf_rep.merged1_all_water", "mf_rep.merged1_all_sed",
                          "mz_rep.merged2_rar2_water","mz_rep.merged2_rar2_sed")
 
 # Example data set to write function
-x<- flattened.ls[[1]]
+#x<- flattened.ls[[1]]
+
+# Add percentage instead of occupancy to keep consistent with other thresholds
+flattened.ls <- lapply(flattened.ls, function(x){
+  x$percentage <- round(x$occupancy * 100 / nrow(x), 0)
+  return(x)
+})
+
+# Extract only MF and MZ rep.merged1 and rep.merged2 - all for Christof to compare the effect
+# of smoothing
+
+export <- names(flattened.ls)[str_detect(names(flattened.ls), "all")]
+export.ls <- flattened.ls[names(flattened.ls) %in% export]
+
+export.df <- ldply(export.ls, bind_rows)
+export.df <- export.df %>% separate(.id, into = c("dataset","rep.merged","rarity.cutoff","sample.type"),
+                       remove = F, sep = "_")
+export.df$dataset <- factor(export.df$dataset, levels = c("mf","mz"), labels = c("molecular.formulae",
+                                                                                 "peaks"))
+
+write.table(export.df, "./3_emergent.threshold/output/frequency_occupancy_mfmz.csv",
+            sep = ",", dec = ".", row.names = F)
+
+# Some sanity check
+# Are percentage values uniquely rounded?
+# lapply(flattened.ls, function(x){
+#   any(duplicated(x$percentage))
+# }) # all FALSE --> yes.
 
 # We're using smooth spline here instead of defining a function and getting a derivative from the function
 # as described in https://cran.r-project.org/web/packages/inflection/vignettes/inflectionMissionImpossible.html
@@ -347,6 +378,7 @@ write.table(thres.df, paste0("./3_emergent.threshold/output/emergent_tresholds_"
             sep = ",",
             row.names = F)
 
+# Knit a table for Github
 thres.df <- read.csv("./3_emergent.threshold/output/emergent_tresholds_2022-01-24.csv",
                      sep = ",", stringsAsFactors = F)
 # Select necessary columns
@@ -360,6 +392,9 @@ thres.df$`Sample type` <- factor(thres.df$`Sample type`, levels = c('water',
                                                                     'sed'),
                                  labels = c('Water','Sediment'))
 knitr::kable(thres.df)
+
+setDT(thres.df)
+thres.df[, max(`Threshold start (Occupancy)`), by = .(Dataset, `Sample type`, `C-S flag`)]
 
 # Save generated plots
 title <- c("Molecular formulae: Surface water - rep.merged1 - all",
