@@ -61,7 +61,7 @@ length(mf.cross)
 data.frame(mf.files, mf.cross)
 
 # Read in meta data
-meta <- read.csv("./1_data.cleaning/output/FTICR_meta_eachriver_2021-11-03.csv",
+meta <- read.csv("./1_data.cleaning/output/FTICR_meta_eachriver_2022-01-19.csv",
                  sep = ',', stringsAsFactors = F)
 
 mf.ls <- vector("list", 6)
@@ -115,8 +115,10 @@ proc.ls <- llply(all.ls, function(x){
   water <- x[str_detect(ID, "SW"),][,-1]
   
   # Process surface water
+  
   # how often were MF found across water samples?
   sum_water <- data.frame(colSums(water)) # sum of presence-absence = number of sites present
+  # Make into percentage
   df_water <- tibble(table(sum_water)) # transform to counts of MF that were found in 1, 2, 3 sites and so on...
   #table(sum_water) #for visualization of results
   df_water <- df_water[-1,] #remove First cell, which is number of formulae = 0. Means we found 9,575 formulae were absent in water samples (compared to the merged table with sediment samples)
@@ -225,7 +227,34 @@ names(flattened.ls) <- c("mf_rep.merged1_all_water", "mf_rep.merged1_all_sed",
                          "mz_rep.merged2_rar2_water","mz_rep.merged2_rar2_sed")
 
 # Example data set to write function
-x<- flattened.ls[[1]]
+#x<- flattened.ls[[1]]
+
+# Add percentage instead of occupancy to keep consistent with other thresholds
+flattened.ls <- lapply(flattened.ls, function(x){
+  x$percentage <- round(x$occupancy * 100 / nrow(x), 0)
+  return(x)
+})
+
+# Extract only MF and MZ rep.merged1 and rep.merged2 - all for Christof to compare the effect
+# of smoothing
+
+export <- names(flattened.ls)[str_detect(names(flattened.ls), "all")]
+export.ls <- flattened.ls[names(flattened.ls) %in% export]
+
+export.df <- ldply(export.ls, bind_rows)
+export.df <- export.df %>% separate(.id, into = c("dataset","rep.merged","rarity.cutoff","sample.type"),
+                       remove = F, sep = "_")
+export.df$dataset <- factor(export.df$dataset, levels = c("mf","mz"), labels = c("molecular.formulae",
+                                                                                 "peaks"))
+
+write.table(export.df, "./3_emergent.threshold/output/frequency_occupancy_mfmz.csv",
+            sep = ",", dec = ".", row.names = F)
+
+# Some sanity check
+# Are percentage values uniquely rounded?
+# lapply(flattened.ls, function(x){
+#   any(duplicated(x$percentage))
+# }) # all FALSE --> yes.
 
 # We're using smooth spline here instead of defining a function and getting a derivative from the function
 # as described in https://cran.r-project.org/web/packages/inflection/vignettes/inflectionMissionImpossible.html
@@ -236,7 +265,7 @@ em.list <- llply(flattened.ls, function(x){
   # take log
   x$log.freq <- log(x$frequency)
   # make a smooth curve
-  spl <- smooth.spline(x$occupancy, x$log.freq, spar = 0.5)
+  spl <- smooth.spline(x$percentage, x$log.freq, spar = 0.5)
   # predict to get fit
   pred <- predict(spl)
   # get second derivative
@@ -247,92 +276,203 @@ em.list <- llply(flattened.ls, function(x){
   max.tail.peaks <- c(length(localMaxima(sec$y)), length(localMaxima(sec$y)) -1)
   
   options(scipen = 999) # avoid scientific annotations
-  # get one plot with raw numbers (non-log)
-  raw <- ggplot() +
-    theme_pubr() +
-    annotate(xmax = x$occupancy[localMinima(sec$y)[2]],
-             xmin = min(x$occupancy),
-             ymin = -Inf, ymax = Inf, geom = "rect", alpha = 0.2, fill = "tomato") +
-    annotate(xmax = max(x$occupancy),
-             xmin = x$occupancy[localMinima(sec$y)[2]],
-             ymin = -Inf, ymax = Inf, geom = "rect", alpha = 0.2, fill = "aquamarine") +
-    annotate(xmax = x$occupancy[localMaxima(sec$y)[max.tail.peaks[1]]],
-             xmin = max(x$occupancy),
-             ymin = -Inf, ymax = Inf, geom = "rect", alpha = 0.2, fill = "tomato") +
-    geom_line(aes(x = x$occupancy, y = x$frequency)) +
-    geom_point(aes(x = x$occupancy[localMaxima(sec$y)[1:2]],
-                   y = x$frequency[localMaxima(sec$y)[1:2]]), colour = "tomato") +
-    geom_point(aes(x = x$occupancy[localMaxima(sec$y)[max.tail.peaks[2]:max.tail.peaks[1]]],
-                   y = x$frequency[localMaxima(sec$y)[max.tail.peaks[2]:max.tail.peaks[1]]]),
-               colour = "tomato") +
-    geom_point(aes(x = x$occupancy[localMinima(sec$y)[1:2]],
-                   y = x$frequency[localMinima(sec$y)[1:2]]), colour = "royalblue") +
-    geom_point(aes(x = x$occupancy[localMinima(sec$y)[min.tail.peaks[2]:min.tail.peaks[1]]],
-                   y = x$frequency[localMinima(sec$y)[min.tail.peaks[2]:min.tail.peaks[1]]]),
-               colour = "royalblue") +
-    labs(x = "", y = "Frequency") +
-    theme(axis.title = element_text(size = 9))
   
-  # get another plot with data used to identify the points of maximum acceleration and minimum deceleration
-  logged <- ggplot() +
-    theme_pubr() +
-    annotate(xmax = pred$x[localMinima(sec$y)[2]],
-             xmin = min(x$occupancy),
-             ymin = -Inf, ymax = Inf, geom = "rect", alpha = 0.2, fill = "tomato") +
-    annotate(xmax = max(pred$x),
-             xmin = pred$x[localMinima(sec$y)[2]],
-             ymin = -Inf, ymax = Inf, geom = "rect", alpha = 0.2, fill = "aquamarine") +
-    annotate(xmax = pred$x[localMaxima(sec$y)[max.tail.peaks[1]]],
-             xmin = max(x$occupancy),
-             ymin = -Inf, ymax = Inf, geom = "rect", alpha = 0.2, fill = "tomato") +
-    geom_line(aes(x = pred$x, y = pred$y)) +
-    geom_point(aes(x = x$occupancy, y = x$log.freq), alpha = 0.5, colour = "black") +
-    geom_point(aes(x = pred$x[localMaxima(sec$y)[1:2]],
-                   y = pred$y[localMaxima(sec$y)[1:2]]), colour = "tomato") +
-    geom_point(aes(x = pred$x[localMinima(sec$y)[1:2]],
-                   y = pred$y[localMinima(sec$y)[1:2]]), colour = "royalblue") +
-    geom_point(aes(x = pred$x[localMaxima(sec$y)[max.tail.peaks[2]:max.tail.peaks[1]]],
-                   y = pred$y[localMaxima(sec$y)[max.tail.peaks[2]:max.tail.peaks[1]]]),
-               colour = "tomato") +
-    geom_point(aes(x = pred$x[localMinima(sec$y)[min.tail.peaks[2]:min.tail.peaks[1]]],
-                   y = pred$y[localMinima(sec$y)[min.tail.peaks[2]:min.tail.peaks[1]]]),
-               colour = "royalblue") +
-    labs(x = "", y = "Frequency (log)") +
-    theme(axis.title = element_text(size = 9))
-  
-  # Show second derivative used to find the points
-  deriv <- ggplot() +
-    theme_pubr() +
-    geom_line(aes(x = sec$x, y = sec$y * 1000)) +
-    geom_point(aes(x = sec$x[localMaxima(sec$y)[1:2]],
-                   y = sec$y[localMaxima(sec$y)[1:2]]* 1000), colour = "tomato") +
-    geom_point(aes(x = sec$x[localMinima(sec$y)[1:2]],
-                   y = sec$y[localMinima(sec$y)[1:2]]* 1000), colour = "royalblue") +
-    geom_point(aes(x = sec$x[localMaxima(sec$y)[max.tail.peaks[2]:max.tail.peaks[1]]],
-                   y = sec$y[localMaxima(sec$y)[max.tail.peaks[2]:max.tail.peaks[1]]]* 1000),
-               colour = "tomato") +
-    geom_point(aes(x = sec$x[localMinima(sec$y)[min.tail.peaks[2]:min.tail.peaks[1]]],
-                   y = sec$y[localMinima(sec$y)[min.tail.peaks[2]:min.tail.peaks[1]]]* 1000),
-               colour = "royalblue") +
-    labs(x = "", y = expression(paste("Acceleration x10"^3, " (2"^"nd", " derivative)"))) +
-    theme(axis.title = element_text(size = 9))
-  
-  p <- ggarrange(raw, logged, deriv, ncol = 3, labels = "auto")
-  # add x axis title to be in the middle of two panels
-  
-  # Extract identified threshold
-  thres.df <- data.frame(cs.flag = c("Satellite", "In-between", "Core"),
-                         occup.thres.min = c(min(x$occupancy), 
-                                             localMinima(sec$y)[2]+1,
-                                             localMaxima(sec$y)[max.tail.peaks[1]]),
-                         occup.thres.max = c(localMinima(sec$y)[2],
-                                             localMaxima(sec$y)[max.tail.peaks[1]]-1,
-                                             max(x$occupancy)
-                                             ))
+  # Core classification
+  # Sediments have a max peak after min peak in contrast to
+  # Surface water which has a min peak after max peak
+  # Classifciation is different between these two sample types
+  if(localMaxima(sec$y)[max.tail.peaks[1]] > localMinima(sec$y)[min.tail.peaks[1]]){
+    # get one plot with raw numbers (non-log)
+    raw <- ggplot() +
+      theme_pubr() +
+      annotate(xmax = x$percentage[localMinima(sec$y)[2]],
+               xmin = min(x$percentage),
+               ymin = -Inf, ymax = Inf, geom = "rect", alpha = 0.2, fill = "tomato") +
+      annotate(xmax = max(x$percentage),
+               xmin = x$percentage[localMinima(sec$y)[2]],
+               ymin = -Inf, ymax = Inf, geom = "rect", alpha = 0.2, fill = "aquamarine") +
+      annotate(xmax = x$percentage[localMaxima(sec$y)[max.tail.peaks[2]]],
+               xmin = max(x$percentage),
+               ymin = -Inf, ymax = Inf, geom = "rect", alpha = 0.2, fill = "tomato") +
+      geom_line(aes(x = x$percentage, y = x$frequency)) +
+      geom_point(aes(x = x$percentage[localMaxima(sec$y)[1:2]],
+                     y = x$frequency[localMaxima(sec$y)[1:2]]), colour = "tomato") +
+      geom_point(aes(x = x$percentage[localMaxima(sec$y)[max.tail.peaks[2]:max.tail.peaks[1]]],
+                     y = x$frequency[localMaxima(sec$y)[max.tail.peaks[2]:max.tail.peaks[1]]]),
+                 colour = "tomato") +
+      geom_point(aes(x = x$percentage[localMinima(sec$y)[1:2]],
+                     y = x$frequency[localMinima(sec$y)[1:2]]), colour = "royalblue") +
+      geom_point(aes(x = x$percentage[localMinima(sec$y)[min.tail.peaks[2]:min.tail.peaks[1]]],
+                     y = x$frequency[localMinima(sec$y)[min.tail.peaks[2]:min.tail.peaks[1]]]),
+                 colour = "royalblue") +
+      labs(x = "", y = "Frequency") +
+      theme(axis.title = element_text(size = 9))
+    
+    # get another plot with data used to identify the points of maximum acceleration and minimum deceleration
+    logged <- ggplot() +
+      theme_pubr() +
+      annotate(xmax = pred$x[localMinima(sec$y)[2]],
+               xmin = min(x$percentage),
+               ymin = -Inf, ymax = Inf, geom = "rect", alpha = 0.2, fill = "tomato") +
+      annotate(xmax = max(pred$x),
+               xmin = pred$x[localMinima(sec$y)[2]],
+               ymin = -Inf, ymax = Inf, geom = "rect", alpha = 0.2, fill = "aquamarine") +
+      annotate(xmax = pred$x[localMaxima(sec$y)[max.tail.peaks[2]]],
+               xmin = max(x$percentage),
+               ymin = -Inf, ymax = Inf, geom = "rect", alpha = 0.2, fill = "tomato") +
+      geom_line(aes(x = pred$x, y = pred$y)) +
+      geom_point(aes(x = x$percentage, y = x$log.freq), alpha = 0.5, colour = "black") +
+      geom_point(aes(x = pred$x[localMaxima(sec$y)[1:2]],
+                     y = pred$y[localMaxima(sec$y)[1:2]]), colour = "tomato") +
+      geom_point(aes(x = pred$x[localMinima(sec$y)[1:2]],
+                     y = pred$y[localMinima(sec$y)[1:2]]), colour = "royalblue") +
+      geom_point(aes(x = pred$x[localMaxima(sec$y)[max.tail.peaks[2]:max.tail.peaks[1]]],
+                     y = pred$y[localMaxima(sec$y)[max.tail.peaks[2]:max.tail.peaks[1]]]),
+                 colour = "tomato") +
+      geom_point(aes(x = pred$x[localMinima(sec$y)[min.tail.peaks[2]:min.tail.peaks[1]]],
+                     y = pred$y[localMinima(sec$y)[min.tail.peaks[2]:min.tail.peaks[1]]]),
+                 colour = "royalblue") +
+      labs(x = "", y = "Frequency (log)") +
+      theme(axis.title = element_text(size = 9))
+    
+    # Show second derivative used to find the points
+    deriv <- ggplot() +
+      theme_pubr() +
+      geom_line(aes(x = sec$x, y = sec$y * 1000)) +
+      geom_point(aes(x = sec$x[localMaxima(sec$y)[1:2]],
+                     y = sec$y[localMaxima(sec$y)[1:2]]* 1000), colour = "tomato") +
+      geom_point(aes(x = sec$x[localMinima(sec$y)[1:2]],
+                     y = sec$y[localMinima(sec$y)[1:2]]* 1000), colour = "royalblue") +
+      geom_point(aes(x = sec$x[localMaxima(sec$y)[max.tail.peaks[2]:max.tail.peaks[1]]],
+                     y = sec$y[localMaxima(sec$y)[max.tail.peaks[2]:max.tail.peaks[1]]]* 1000),
+                 colour = "tomato") +
+      geom_point(aes(x = sec$x[localMinima(sec$y)[min.tail.peaks[2]:min.tail.peaks[1]]],
+                     y = sec$y[localMinima(sec$y)[min.tail.peaks[2]:min.tail.peaks[1]]]* 1000),
+                 colour = "royalblue") +
+      labs(x = "", y = expression(paste("Acceleration x10"^3, " (2"^"nd", " derivative)"))) +
+      theme(axis.title = element_text(size = 9))
+    
+    p <- ggarrange(raw, logged, deriv, ncol = 3, labels = "auto")
+    # add x axis title to be in the middle of two panels
+    
+    # Extract identified threshold
+    thres.df <- data.frame(cs.flag = c("Satellite", "In-between", "Core"),
+                           occup.thres.min = c(min(x$percentage), 
+                                               localMinima(sec$y)[2]+1,
+                                               localMaxima(sec$y)[max.tail.peaks[2]]),
+                           occup.thres.max = c(localMinima(sec$y)[2],
+                                               localMaxima(sec$y)[max.tail.peaks[2]]-1,
+                                               max(x$percentage)
+                           ))
+    
+  } else {
+    # get one plot with raw numbers (non-log)
+    raw <- ggplot() +
+      theme_pubr() +
+      annotate(xmax = x$percentage[localMinima(sec$y)[2]],
+               xmin = min(x$percentage),
+               ymin = -Inf, ymax = Inf, geom = "rect", alpha = 0.2, fill = "tomato") +
+      annotate(xmax = max(x$percentage),
+               xmin = x$percentage[localMinima(sec$y)[2]],
+               ymin = -Inf, ymax = Inf, geom = "rect", alpha = 0.2, fill = "aquamarine") +
+      annotate(xmax = x$percentage[localMinima(sec$y)[min.tail.peaks[2]]],
+               xmin = max(x$percentage),
+               ymin = -Inf, ymax = Inf, geom = "rect", alpha = 0.2, fill = "tomato") +
+      geom_line(aes(x = x$percentage, y = x$frequency)) +
+      geom_point(aes(x = x$percentage[localMaxima(sec$y)[1:2]],
+                     y = x$frequency[localMaxima(sec$y)[1:2]]), colour = "tomato") +
+      geom_point(aes(x = x$percentage[localMaxima(sec$y)[max.tail.peaks[2]:max.tail.peaks[1]]],
+                     y = x$frequency[localMaxima(sec$y)[max.tail.peaks[2]:max.tail.peaks[1]]]),
+                 colour = "tomato") +
+      geom_point(aes(x = x$percentage[localMinima(sec$y)[1:2]],
+                     y = x$frequency[localMinima(sec$y)[1:2]]), colour = "royalblue") +
+      geom_point(aes(x = x$percentage[localMinima(sec$y)[min.tail.peaks[2]:min.tail.peaks[1]]],
+                     y = x$frequency[localMinima(sec$y)[min.tail.peaks[2]:min.tail.peaks[1]]]),
+                 colour = "royalblue") +
+      labs(x = "", y = "Frequency") +
+      theme(axis.title = element_text(size = 9))
+    
+    # get another plot with data used to identify the points of maximum acceleration and minimum deceleration
+    logged <- ggplot() +
+      theme_pubr() +
+      annotate(xmax = pred$x[localMinima(sec$y)[2]],
+               xmin = min(x$percentage),
+               ymin = -Inf, ymax = Inf, geom = "rect", alpha = 0.2, fill = "tomato") +
+      annotate(xmax = max(pred$x),
+               xmin = pred$x[localMinima(sec$y)[2]],
+               ymin = -Inf, ymax = Inf, geom = "rect", alpha = 0.2, fill = "aquamarine") +
+      annotate(xmax = pred$x[localMinima(sec$y)[min.tail.peaks[2]]],
+               xmin = max(x$percentage),
+               ymin = -Inf, ymax = Inf, geom = "rect", alpha = 0.2, fill = "tomato") +
+      geom_line(aes(x = pred$x, y = pred$y)) +
+      geom_point(aes(x = x$percentage, y = x$log.freq), alpha = 0.5, colour = "black") +
+      geom_point(aes(x = pred$x[localMaxima(sec$y)[1:2]],
+                     y = pred$y[localMaxima(sec$y)[1:2]]), colour = "tomato") +
+      geom_point(aes(x = pred$x[localMinima(sec$y)[1:2]],
+                     y = pred$y[localMinima(sec$y)[1:2]]), colour = "royalblue") +
+      geom_point(aes(x = pred$x[localMaxima(sec$y)[max.tail.peaks[2]:max.tail.peaks[1]]],
+                     y = pred$y[localMaxima(sec$y)[max.tail.peaks[2]:max.tail.peaks[1]]]),
+                 colour = "tomato") +
+      geom_point(aes(x = pred$x[localMinima(sec$y)[min.tail.peaks[2]:min.tail.peaks[1]]],
+                     y = pred$y[localMinima(sec$y)[min.tail.peaks[2]:min.tail.peaks[1]]]),
+                 colour = "royalblue") +
+      labs(x = "", y = "Frequency (log)") +
+      theme(axis.title = element_text(size = 9))
+    
+    # Show second derivative used to find the points
+    deriv <- ggplot() +
+      theme_pubr() +
+      geom_line(aes(x = sec$x, y = sec$y * 1000)) +
+      geom_point(aes(x = sec$x[localMaxima(sec$y)[1:2]],
+                     y = sec$y[localMaxima(sec$y)[1:2]]* 1000), colour = "tomato") +
+      geom_point(aes(x = sec$x[localMinima(sec$y)[1:2]],
+                     y = sec$y[localMinima(sec$y)[1:2]]* 1000), colour = "royalblue") +
+      geom_point(aes(x = sec$x[localMaxima(sec$y)[max.tail.peaks[2]:max.tail.peaks[1]]],
+                     y = sec$y[localMaxima(sec$y)[max.tail.peaks[2]:max.tail.peaks[1]]]* 1000),
+                 colour = "tomato") +
+      geom_point(aes(x = sec$x[localMinima(sec$y)[min.tail.peaks[2]:min.tail.peaks[1]]],
+                     y = sec$y[localMinima(sec$y)[min.tail.peaks[2]:min.tail.peaks[1]]]* 1000),
+                 colour = "royalblue") +
+      labs(x = "", y = expression(paste("Acceleration x10"^3, " (2"^"nd", " derivative)"))) +
+      theme(axis.title = element_text(size = 9))
+    
+    p <- ggarrange(raw, logged, deriv, ncol = 3, labels = "auto")
+    # add x axis title to be in the middle of two panels
+    
+    # Extract identified threshold
+    thres.df <- data.frame(cs.flag = c("Satellite", "In-between", "Core"),
+                           occup.thres.min = c(min(x$percentage), 
+                                               localMinima(sec$y)[2]+1,
+                                               localMinima(sec$y)[min.tail.peaks[2]]),
+                           occup.thres.max = c(localMinima(sec$y)[2],
+                                               localMinima(sec$y)[min.tail.peaks[2]]-1,
+                                               max(x$percentage)
+                           ))
+    
+  }
   
   out <- list(thres.df, p)
   return(out)
 })
+
+# Extract smoothing
+fitted.df <- ldply(flattened.ls, function(x){
+  x$log.freq <- log(x$frequency)
+  # make a smooth curve
+  spl <- smooth.spline(x$percentage, x$log.freq, spar = 0.5)
+  # predict to get fit
+  x$loess.5 <- predict(spl)$y
+  # get second derivative
+  x$loess.5.secderiv <- predict(spl, deriv = 2)$y
+  return(x)
+})
+
+# exclude, rarity cutoffs
+fitted.df <- separate(fitted.df, col = '.id', into = c("dataset", "replicate.merging", "rarity.cutoff", "sample.type"),
+                     remove = F, sep = "_")
+fitted.df$dataset <- factor(fitted.df$dataset, levels = c("mf","mz"), labels = c("Molecular formulae",
+                                                                               "Peaks"))
+fitted.df <- fitted.df[fitted.df$rarity.cutoff == "all",]
 
 # Extract results --------------------------------------------------------------------------
 # Identified thresholds
@@ -342,24 +482,44 @@ thres.df <- separate(thres.df, col = '.id', into = c("dataset", "replicate.mergi
 thres.df$dataset <- factor(thres.df$dataset, levels = c("mf","mz"), labels = c("Molecular formulae",
                                                                        "Peaks"))
 
+# Take only replicate merging, remove rarity cutoffs
+thres.df <- thres.df[thres.df$rarity.cutoff == "all",]
+
 # Save as table
-write.table(thres.df, paste0("./3_emergent.threshold/output/emergent_tresholds_",Sys.Date(), ".csv"),
+write.table(thres.df, paste0("./4_gather.thresholds/keys/emergent_tresholds_key_",Sys.Date(), ".csv"),
             sep = ",",
             row.names = F)
 
-thres.df <- read.csv("./3_emergent.threshold/output/emergent_tresholds_2022-01-24.csv",
-                     sep = ",", stringsAsFactors = F)
-# Select necessary columns
-thres.df <- thres.df %>% dplyr::select(-.id)
+# Add to fitted data frame
+# pivot wider, threshold key
+setDT(thres.df); setDT(fitted.df)
+thres.df[, thres := paste(occup.thres.min, occup.thres.max, sep = "-")]
+thres.wide <- dcast(thres.df, formula = .id ~ cs.flag, value.var = "thres")
+fitted.df <- fitted.df[thres.wide, , on = .(.id)]
+fitted.df[, occupancy := NULL]
 
-# Re-label
-colnames(thres.df) <- c("Dataset", "Replicate merging", "Rarity cutoff", "Sample type", "C-S flag",
-                          "Threshold start (Occupancy)", "Threshold end (Occupancy)")
-# Re-level
-thres.df$`Sample type` <- factor(thres.df$`Sample type`, levels = c('water',
-                                                                    'sed'),
-                                 labels = c('Water','Sediment'))
-knitr::kable(thres.df)
+# Save fitted data
+write.table(fitted.df, "./3_emergent.threshold/output/em.thres_loess_spar0.5_fitted.csv",
+            sep = ",", dec = ".", row.names = F)
+
+# Knit a table for Github
+# thres.df <- read.csv("./3_emergent.threshold/output/emergent_tresholds_key_2022-03-01.csv",
+#                      sep = ",", stringsAsFactors = F)
+
+# Select necessary columns
+# thres.df <- thres.df %>% dplyr::select(-.id)
+# 
+# # Re-label
+# colnames(thres.df) <- c("Dataset", "Replicate merging", "Rarity cutoff", "Sample type", "C-S flag",
+#                           "Threshold start (Occupancy)", "Threshold end (Occupancy)", "Threshold Range")
+# # Re-level
+# thres.df$`Sample type` <- factor(thres.df$`Sample type`, levels = c('water',
+#                                                                     'sed'),
+#                                  labels = c('Water','Sediment'))
+# knitr::kable(thres.df)
+# 
+# setDT(thres.df)
+# thres.df[, max(`Threshold start (Occupancy)`), by = .(Dataset, `Sample type`, `C-S flag`)]
 
 # Save generated plots
 title <- c("Molecular formulae: Surface water - rep.merged1 - all",
@@ -389,9 +549,154 @@ title <- c("Molecular formulae: Surface water - rep.merged1 - all",
 
 for(i in 1:length(em.list)){
   p <- annotate_figure(em.list[[i]][[2]], top = text_grob(title[i]),
-                       bottom = "Occupancy")
+                       bottom = "Occupancy (%)")
   ggsave(paste0("./3_emergent.threshold/prelim_figures/em.thres_", names(em.list)[i],
                 ".png"), p, width = 25, height = 9, unit = "cm", dpi = 250)
 }
+
+
+# Apply threshold -----------------------------------------------------------------------------------------------------
+# We're done with getting the threshold now, we must apply the threshold to the dataset and
+# export in a way that other users can use it
+
+# What we will do is, calculate the percentage occupancy for each peak/molecular formulae in dataset
+# and then we apply our thresholds
+# Output will be saved in the cross table, so it's easy to use by other users
+
+# Calcualte percentage occupancy for each peak/molecular formulae
+
+
+occup.ls <- llply(all.ls, function(x){
+  setDT(x)
+  # Separate sediment and surface water by ID and remove ID column
+  sed <- x[str_detect(ID, "SED"),][,-1]
+  water <- x[str_detect(ID, "SW"),][,-1]
+  
+  # Process surface water
+  
+  # how often were MF found across water samples?
+  sum_water <- data.frame(occupancy = colSums(water)) # sum of presence-absence = number of sites present
+  setDT(sum_water, keep.rownames = "mf.mz")
+  
+  # Calculate percentage
+  sum_water[, perc.occup := round(occupancy * 100 / nrow(water), 2)] # divide by n
+  
+  # Process sediment
+  # Sequence of code is same as water samples.
+  sum_sed <- data.frame(occupancy = colSums(sed))
+  setDT(sum_sed, keep.rownames = "mf.mz")
+  
+  # Calculate percentage
+  sum_sed[, perc.occup := round(occupancy * 100 / nrow(sed), 2)] # divide by n
+  
+  # combine water and sediment together
+  # sum_water[sum_sed, c("occupancy.sed",
+  #                      "perc.occup.sed") := list(occupancy.sed, perc.occup.sed), on = .(mf.mz)]
+  # sanity check
+  # ncol(x)-1 ==  length(unique(sum_water$mf.mz))
+  
+  return(list(sum_water, sum_sed))
+  
+}, .parallel = T)
+
+# Flatten list into a one-level list
+occup.ls <- purrr::flatten(occup.ls)
+# add names
+names(occup.ls) <- c("mf_rep.merged1_all_water", "mf_rep.merged1_all_sed",
+                         "mf_rep.merged1_rar1_water", "mf_rep.merged1_rar1_sed",
+                         "mf_rep.merged1_rar2_water", "mf_rep.merged1_rar2_sed",
+                         "mf_rep.merged2_all_water", "mf_rep.merged2_all_sed",
+                         "mf_rep.merged2_rar1_water","mf_rep.merged2_rar1_sed", 
+                         "mf_rep.merged2_rar2_water","mf_rep.merged2_rar2_sed",
+                         "mz_rep.merged1_all_water","mz_rep.merged1_all_sed",
+                         "mz_rep.merged1_rar1_water","mz_rep.merged1_rar1_sed",
+                         "mz_rep.merged1_rar2_water","mz_rep.merged1_rar2_sed",
+                         "mz_rep.merged2_all_water","mz_rep.merged2_all_sed",
+                         "mz_rep.merged2_rar1_water","mz_rep.merged2_rar1_sed",
+                         "mz_rep.merged2_rar2_water","mz_rep.merged2_rar2_sed")
+
+# Apply threshold values
+occup.df <- bind_rows(occup.ls, .id = ".id")
+
+# Make another wide threshold df
+thres.wide <- dcast(thres.df, formula = .id ~ cs.flag, value.var = c("occup.thres.min","occup.thres.max"))
+# merge
+occup.df <- occup.df[thres.wide, , on = .(.id)]
+
+# Identify cs group for each mf/mz
+occup.df[round(perc.occup,0) <= occup.thres.max_Satellite, cs.flag := "Satellite"]
+occup.df[round(perc.occup,0) >= occup.thres.min_Core, cs.flag := "Core"]
+occup.df[round(perc.occup,0) > occup.thres.max_Satellite & round(perc.occup,0) < occup.thres.min_Core, cs.flag :=  "In-between"]
+
+# sanity check
+occup.df[is.na(cs.flag),]
+
+# Clean df
+occup.df <- occup.df %>% dplyr::select(.id:perc.occup, cs.flag)
+
+# Read to crosstable
+mf.ls <- vector("list", 6)
+# Run loop to read in data
+for(i in 1:6){
+  data_cross <- read.csv(paste0("./1_data.cleaning/output/", mf.cross[i]),
+                          sep = ",", stringsAsFactors = F)
+  
+  # assign to list bin
+  mf.ls[[i]] <- data_cross
+}
+
+# Some sanity check
+lapply(mf.ls, dim)
+# Add names to list
+names(mf.ls) <- c("mf_rep.merged1_all", "mf_rep.merged1_rar1", "mf_rep.merged1_rar2",
+                  "mf_rep.merged2_all", "mf_rep.merged2_rar1", "mf_rep.merged2_rar2")
+
+# bind into one dataframe
+cross <- bind_rows(mf.ls, .id = ".id")
+
+# For molecular formulae, rearrange occup.df and merge
+# Separate sed and water
+
+occup.df <- separate(occup.df, col = '.id', into = c("dataset", "replicate.merging", "rarity.cutoff", "sample.type"),
+                     remove = F, sep = "_")
+
+out <- occup.df[rarity.cutoff == "all",] %>% setDT()
+# make ID same as cross table
+out[, .id := paste(dataset, replicate.merging, rarity.cutoff, sep = "_")]
+
+out.mf <- out[dataset == "mf",]
+out.mz <- out[dataset == "mz",]
+
+# change column names
+colnames(out.mf)[c(6,9)] <- c("MolForm", "cs.flag.emergent")
+out.mf <- dcast(out.mf, formula = .id + MolForm ~ sample.type, value.var = c("occupancy", "perc.occup", "cs.flag.emergent"))
+
+# merge with cross table
+setDT(cross)
+cross <- cross[out.mf, , on = .(MolForm, .id)]
+
+# Separate into different data frames by ID for saving
+cross.ls <- split(cross, by = ".id")
+
+# Do same for peaks
+# change column names
+colnames(out.mz)[c(6,9)] <- c("Mass", "cs.flag.emergent")
+# Change mass into numeric
+out.mz[, Mass := str_remove(Mass, "X")]
+out.mz <- dcast(out.mz, formula = .id + Mass ~ sample.type, value.var = c("occupancy", "perc.occup", "cs.flag.emergent"))
+
+# Separate into different data frames by ID for saving
+cross.mz.ls <- split(out.mz, by = ".id")
+
+# Saving paths
+# create list with names
+save.vec <- c(paste0("./4_gather.thresholds/FTICR_crosstable_rep.merged1_all_em.thres_",Sys.Date(),".csv"),
+              paste0("./4_gather.thresholds/FTICR_crosstable_rep.merged2_all_em.thres_",Sys.Date(),".csv"),
+              paste0("./4_gather.thresholds/FTICR_peaks_crosstable_rep.merged1_all_em.thres_",Sys.Date(),".csv"),
+              paste0("./4_gather.thresholds/FTICR_peaks_crosstable_rep.merged2_all_em.thres_",Sys.Date(),".csv"))
+
+out.ls <- c(cross.ls, cross.mz.ls)
+# Save community matrix
+mapply(write.table, out.ls, save.vec, MoreArgs = list(sep = ",", dec = ".", row.names = F))
 
 #-- End: Addition by MS
