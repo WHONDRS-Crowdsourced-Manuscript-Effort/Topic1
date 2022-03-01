@@ -486,7 +486,7 @@ thres.df$dataset <- factor(thres.df$dataset, levels = c("mf","mz"), labels = c("
 thres.df <- thres.df[thres.df$rarity.cutoff == "all",]
 
 # Save as table
-write.table(thres.df, paste0("./3_emergent.threshold/output/emergent_tresholds_key_",Sys.Date(), ".csv"),
+write.table(thres.df, paste0("./4_gather.thresholds/keys/emergent_tresholds_key_",Sys.Date(), ".csv"),
             sep = ",",
             row.names = F)
 
