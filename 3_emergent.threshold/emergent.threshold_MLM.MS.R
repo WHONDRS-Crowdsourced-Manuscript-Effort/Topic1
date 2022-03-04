@@ -699,4 +699,123 @@ out.ls <- c(cross.ls, cross.mz.ls)
 # Save community matrix
 mapply(write.table, out.ls, save.vec, MoreArgs = list(sep = ",", dec = ".", row.names = F))
 
+
+# Compare smoothing methods -----------------------------------------------------------------------------------------
+
+smooth.methods <- read.csv("./3_emergent.threshold/output/em.thres_loess_spar0.5_fitted_added_2nd.csv",
+                           sep = ",", dec = ".", stringsAsFactors = F)
+
+
+# Calculate thresholds
+
+# Plot smoothing
+# make long format for ggplot
+
+plot.df <- smooth.methods %>% dplyr::select(.id:loess.5, moving.avg.1:knot55.1) %>% setDT()
+
+# widen
+plot.df <- melt(plot.df[, c(".id", "frequency") := list(NULL, NULL)],
+     id.vars = c("dataset", "replicate.merging", "rarity.cutoff", "sample.type", "percentage", "log.freq"),
+     variable.name = "method", value.name = "smooth.value")
+
+# MF - Sediment
+mf <- plot.df[dataset == "Molecular formulae",]
+ggplot() +
+  theme_bw()+
+  geom_point(data = mf[sample.type == "sed",], aes(x = percentage, y = log.freq),
+             size = 1, alpha = 0.5) +
+  geom_line(data = mf[sample.type == "sed",], aes(x = percentage, y = smooth.value, colour = method), size =2) +
+  scale_colour_viridis_d(option = "magma", end = 0.9) +
+  facet_wrap(vars(replicate.merging, method), scale = "free_y") +
+  
+  labs(x = "Occupancy (%)", y = "Frequency", title = "MF - Sediment")
+
+# MF - water
+ggplot() +
+  theme_bw()+
+  geom_point(data = mf[sample.type == "water",], aes(x = percentage, y = log.freq),
+             size = 1, alpha = 0.5) +
+  geom_line(data = mf[sample.type == "water",], aes(x = percentage, y = smooth.value, colour = method)) +
+  scale_colour_viridis_d(option = "magma", end = 0.9) +
+  facet_wrap(vars(replicate.merging, method), scale = "free_y") +
+  labs(x = "Occupancy (%)", y = "Frequency", title = "MF - Surface water")
+
+# Peaks - Sediment
+mz <- plot.df[dataset == "Peaks",]
+ggplot() +
+  theme_bw()+
+  geom_point(data = mz[sample.type == "sed",], aes(x = percentage, y = log.freq),
+             size = 1, alpha = 0.5) +
+  geom_line(data = mz[sample.type == "sed",], aes(x = percentage, y = smooth.value, colour = method)) +
+  scale_colour_viridis_d(option = "magma", end = 0.9) +
+  facet_wrap(vars(replicate.merging, method), scale = "free_y") +
+  labs(x = "Occupancy (%)", y = "Frequency", title = "Peaks - Sediment")
+
+# Peaks - Surface water
+ggplot() +
+  theme_bw()+
+  geom_point(data = mz[sample.type == "water",], aes(x = percentage, y = log.freq),
+             size = 1, alpha = 0.5) +
+  geom_line(data = mz[sample.type == "water",], aes(x = percentage, y = smooth.value, colour = method)) +
+  scale_colour_viridis_d(option = "magma", end = 0.9) +
+  facet_wrap(vars(replicate.merging, method), scale = "free_y") +
+  labs(x = "Occupancy (%)", y = "Frequency", title = "Peaks - Surface water")
+
+# Get thresholds ------------------------------------------------------------------------------------------------------------
+# Run function by group
+
+thres.df <- smooth.methods %>% dplyr::select(.id:loess.5.secderiv, moving.avg.1:knot55.1, moving.avg.2:knot55.2) %>% setDT()
+
+# into long format
+thres.df <- melt(thres.df[, c(".id", "frequency") := list(NULL, NULL)],
+                id.vars = c("dataset", "replicate.merging", "rarity.cutoff", "sample.type", "percentage", "log.freq"),
+                variable.name = "method", value.name = "smooth.value")
+
+# extract patterns
+thres.df[, method.uni := sub("\\..*", "", method)]
+thres.df[method == "loess.5", method.uni := "loess.5"]
+thres.df[method == "loess.5.secderiv", method.uni := "loess.5"]
+thres.df[, deriv := ifelse(str_detect(method, ".2"), "deriv", "pred")]
+thres.df[method == "loess.5.secderiv", deriv := "deriv"]
+
+# widen
+# dcast(thres.df, dataset + replicate.merging + rarity.cutoff + sample.type + percentage + log.freq ~ method.uni + deriv,
+#       value.var = "smooth.value")
+
+x <- thres.df[dataset == "Peaks" & sample.type == "sed" & method.uni == "knot25",]
+
+all.thres <- ddply(thres.df, .(dataset, replicate.merging, sample.type, method.uni), function(x){
+  setDT(x)
+  pred <- x[deriv == "pred",]$smooth.value
+  deriv <- x[deriv == "deriv",]$smooth.value 
+  
+  # get number of peaks to classify core
+  min.tail.peaks <- c(length(localMinima(deriv)), length(localMinima(deriv)) -1)
+  max.tail.peaks <- c(length(localMaxima(deriv)), length(localMaxima(deriv)) -1)
+  
+  if(localMaxima(deriv)[max.tail.peaks[1]] > localMinima(deriv)[min.tail.peaks[1]]){
+    # Extract identified threshold
+    out <- data.frame(cs.flag = c("Satellite", "In-between", "Core"),
+                           occup.thres.min = c(min(x$percentage), 
+                                               localMinima(deriv)[2]+1,
+                                               localMaxima(deriv)[max.tail.peaks[2]]),
+                           occup.thres.max = c(localMinima(deriv)[2],
+                                               localMaxima(deriv)[max.tail.peaks[2]]-1,
+                                               max(x$percentage)
+                           ))
+  } else {
+    # Extract identified threshold
+    out <- data.frame(cs.flag = c("Satellite", "In-between", "Core"),
+                           occup.thres.min = c(min(x$percentage), 
+                                               localMinima(deriv)[2]+1,
+                                               localMinima(deriv)[min.tail.peaks[2]]),
+                           occup.thres.max = c(localMinima(deriv)[2],
+                                               localMinima(deriv)[min.tail.peaks[2]]-1,
+                                               max(x$percentage)
+                           ))
+  }
+  return(out)
+
+})
+
 #-- End: Addition by MS
