@@ -818,4 +818,35 @@ all.thres <- ddply(thres.df, .(dataset, replicate.merging, sample.type, method.u
 
 })
 
+# Change Satellites that are 0 but classified as satellite
+
+cross <- c(list.files("./4_gather.thresholds/", pattern = "2022-03-07.csv"),
+           list.files("./4_gather.thresholds/", pattern = "peaks"))
+files <- list()
+
+for(i in 1:length(cross)){
+  files[[i]] <- read.csv(paste0("./4_gather.thresholds/", cross[i]),
+           sep = ",", dec = ".", stringsAsFactors = F) %>% setDT()
+}
+
+cor.files <- lapply(files, function(x){
+  cols <- colnames(x)[str_detect(colnames(x), pattern = "cs.flag")]
+  seds <- cols[str_detect(cols, pattern = "sed")]
+  wats <- cols[str_detect(cols, pattern = "water")]
+  x<-x[perc.occup_sed == 0, (seds) := as.list(rep(NA, length(seds)))]
+  x<-x[perc.occup_water == 0, (wats) := as.list(rep(NA, length(wats)))]
+  return(x)
+})
+
+# sanity check
+cor.files[[1]][perc.occup_water == 0,]
+
+# write files
+for(i in 1:length(cor.files)){
+  write.table(cor.files[[i]],
+              paste0("./4_gather.thresholds/", str_replace(cross[i], pattern = "2022-03-07|2022-03-01", 
+                                                           replacement = paste(Sys.Date()))),
+              sep = ',', dec = '.', row.names = F)
+}
+
 #-- End: Addition by MS
