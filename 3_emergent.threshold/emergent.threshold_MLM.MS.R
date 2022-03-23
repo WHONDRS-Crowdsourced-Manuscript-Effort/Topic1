@@ -849,4 +849,76 @@ for(i in 1:length(cor.files)){
               sep = ',', dec = '.', row.names = F)
 }
 
+# Find overlap -------------------------------------------------------------------------------------------------
+
+cross <- c(list.files("./4_gather.thresholds/", pattern = "2022-03-18.csv"))
+files <- list()
+
+for(i in 1:length(cross)){
+  files[[i]] <- read.csv(paste0("./4_gather.thresholds/", cross[i]),
+                         sep = ",", dec = ".", stringsAsFactors = F) %>% setDT()
+}
+
+# add new columns with overlap IDs
+cor.files <- lapply(files, function(x){
+  
+  # Add a column of habitat overlap
+  x[occupancy_sed > 0 & occupancy_water > 0, habitat.overlap := "y"]
+  x[is.na(habitat.overlap), habitat.overlap := "n"]
+  
+  cols <- colnames(x)[str_detect(colnames(x), pattern = "cs.flag")]
+  #em <- cols[str_detect(cols, pattern = "emergent")]
+  pca <- cols[str_detect(cols, pattern = "pca")]
+  
+  # Emergent is in both MF and peaks dataset
+  # make new columns
+  x[cs.flag.emergent_sed == "Core" & cs.flag.emergent_water == "Core", "cs.flag.emergent_overlap" := "Global core"]
+  x[cs.flag.emergent_sed == "Satellite" & cs.flag.emergent_water == "Satellite", "cs.flag.emergent_overlap" := "Global satellite"]
+  x[cs.flag.emergent_sed == "In-between" & cs.flag.emergent_water == "In-between", "cs.flag.emergent_overlap" := "Global in-between"]
+  
+  # Add another column less detailed
+  x[, cs.flag.emergent_general.overlap := cs.flag.emergent_overlap]
+  
+  # Identify those that shift
+  x[cs.flag.emergent_sed == "Core" & cs.flag.emergent_water == "Satellite", "cs.flag.emergent_overlap" := "Sed Core - Water Sat"]
+  x[cs.flag.emergent_sed == "Core" & cs.flag.emergent_water == "In-between", "cs.flag.emergent_overlap" := "Sed Core - Water Inbetween"]
+  x[cs.flag.emergent_sed == "Satellite" & cs.flag.emergent_water == "Core", "cs.flag.emergent_overlap" := "Sed Sat - Water Core"]
+  x[cs.flag.emergent_sed == "Satellite" & cs.flag.emergent_water == "In-between", "cs.flag.emergent_overlap" := "Sed Sat - Water Inbetween"]
+  x[cs.flag.emergent_sed == "In-between" & cs.flag.emergent_water == "Core", "cs.flag.emergent_overlap" := "Sed Inbetween - Water Core"]
+  x[cs.flag.emergent_sed == "In-between" & cs.flag.emergent_water == "Satellite", "cs.flag.emergent_overlap" := "Sed Inbetween - Water Sat"]
+  
+  x[cs.flag.emergent_sed != cs.flag.emergent_water,
+    cs.flag.emergent_general.overlap := "Shifter"]
+  
+  # sanity check
+  # x[habitat.overlap == "y" & is.na(cs.flag.emergent_overlap),] # should be NA
+  # x[habitat.overlap == "y" & is.na(cs.flag.emergent_overlap),] # should be NA
+  
+  # For MF dataset do...
+  if(length(pca) != 0L){
+    # Do for other thresholds
+    x[cs.flag.pca_sed == "Core" & cs.flag.pca_water == "Core", cs.flag.pca_general.overlap := "Global core"]
+    x[cs.flag.pca_sed == "Satellite" & cs.flag.pca_water == "Satellite", cs.flag.pca_general.overlap := "Global satellite"]
+    x[cs.flag.pca_sed != cs.flag.pca_water, cs.flag.pca_general.overlap := "Shifter"]
+    
+    x[cs.flag.rf_sed == "Core" & cs.flag.rf_water == "Core", cs.flag.rf_general.overlap := "Global core"]
+    x[cs.flag.rf_sed == "Satellite" & cs.flag.rf_water == "Satellite", cs.flag.rf_general.overlap := "Global satellite"]
+    x[cs.flag.rf_sed != cs.flag.rf_water, cs.flag.rf_general.overlap := "Shifter"]
+    
+    # Sanity check
+    # x[habitat.overlap == "y" & is.na(cs.flag.pca_general.overlap),] # should be NA
+    # x[habitat.overlap == "y" & is.na(cs.flag.rf_general.overlap),] # should be NA
+  }
+  
+  return(x)
+})
+
+# write files
+for(i in 1:length(cor.files)){
+  write.table(cor.files[[i]],
+              paste0("./4_gather.thresholds/", str_replace(cross[i], pattern = "2022-03-18", 
+                                                           replacement = paste(Sys.Date()))),
+              sep = ',', dec = '.', row.names = F)
+}
+
 #-- End: Addition by MS
