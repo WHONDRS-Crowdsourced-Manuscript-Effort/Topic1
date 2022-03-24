@@ -1,4 +1,5 @@
-The script generates swarm plots for a number of properties derived from the molecular formulae, such as double bonds, aromaticity, nominal oxidation state of carbon etc. 
+PURPOSE:
+visualize characteristics of core and satellite species. This is done using swarm plots for a number of properties derived from the molecular formulae, such as double bonds, aromaticity, nominal oxidation state of carbon etc. Figures distinguish water and porewater (sediment) samples (i.e. how do core and satellite properties compare in the water, in the sediment?) and (some) show these properties for individual compound classes (how does the distribution of properties compare between core and satellite speices in a given compound class)
 
 
 SCRIPTS:
