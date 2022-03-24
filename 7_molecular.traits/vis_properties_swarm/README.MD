@@ -3,9 +3,13 @@ visualize characteristics of core and satellite species. This is done using swar
 
 
 SCRIPTS:
+
+vis_swarm2.m: 
+as previous, but now it also generates the swarm plots for compounds core in both water and sediment, and satellite in both water and sediment
+Also removed the PCA as this will become part of Topic1/6_mulvar
+
 vis_swarm_withPCA_classes.m:
 as previous, but now it also generates the swarm plots for the individual compound classes
-So far, this is the latest version, so you can ignore the others
 
 vis_swarm_withPCA_SatelliteFixed.m: 
 as previous, but tapping into the data file that has the Satellite annotation fixed
@@ -21,6 +25,9 @@ I added a few screenshots for some of the results, in case you don't have matlab
 
 swarm_screenshot...: 
 swarm plots for properties in core, satellite (and in-between) separated by water/sediment and by method (emergent = second derivate; pca-based; random forest based)
+
+general_cc&ss:
+shows distributions for core water and sediment (as swarm_screenshot), but also shows the distribution for MF that are core in both water and sediment, and those that are satellite in both water and sediment
 
 merge1/2_compoundclass:
 swarm plots as for swarm_screenshot, but now the plots are done separately for individual compound classes
