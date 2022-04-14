@@ -45,7 +45,6 @@ cross_merge2=subset(cross_merge1, !is.na(cs.flag.emergent_water))
 #1) Merged 1 - SEDIMENTS
 ########################
 #Plot
-ggplot(data=cross_merge1, aes(x=cs.flag.emergent_sed, y=NOSC))+   
   geom_boxplot()
 
 # To compare if metrics are statistically different between groups, we need to run a test and check the assumptions
@@ -200,7 +199,7 @@ cross_merge1$cs.flag.emergent_water= factor(cross_merge1$cs.flag.emergent_water,
 ggboxplot(cross_merge1, x = "cs.flag.emergent_water" , y = "NOSC", fill = "cs.flag.emergent_water") +
   stat_pvalue_manual(stat.test4, hide.ns = FALSE) +
   theme_bw() +theme(legend.position="none")+ scale_fill_viridis(discrete = TRUE)
-setwd("C:/Users/micha/OneDrive/Documentos/GitHub/Topic1/7_molecular.traits/")
+setwd("C:/Users/micha/OneDrive/Documentos/GitHub/Topic1/7_molecular.traits/Boxplots/")
 ggsave("Boxplot_NOSC_water_merged1.png", dpi=300, width = 6, height = 4)
 
 ########################################################################################
@@ -429,11 +428,12 @@ stat.test12 <- stat.test12 %>% add_xy_position(x = "cs.flag.emergent_water")
 ggboxplot(cross_merge2, x = "cs.flag.emergent_water" , y = "DBE", fill = "cs.flag.emergent_water") +
   stat_pvalue_manual(stat.test12, hide.ns = FALSE) +
   theme_bw() +theme(legend.position="none")+ scale_fill_viridis(discrete = TRUE)
-setwd("C:/Users/micha/OneDrive/Documentos/GitHub/Topic1/7_molecular.traits/")
+
+setwd("C:/Users/micha/OneDrive/Documentos/GitHub/Topic1/7_molecular.traits/Boxplots/")
 ggsave("Boxplot_DBE_water_merged2.png", dpi=300, width = 6, height = 4)
 
 ######################################################################################
-## Ai Mod - WATER MERGE1
+## Ai Mod - WATER MERGE2
 #I can plot everything together
 res.kruskal13 <- cross_merge2 %>% kruskal_test( AI_Mod~cs.flag.emergent_water)
 res.kruskal13
