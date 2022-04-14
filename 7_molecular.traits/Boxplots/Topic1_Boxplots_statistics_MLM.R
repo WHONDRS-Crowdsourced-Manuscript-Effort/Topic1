@@ -27,11 +27,14 @@ names(cross_merge1)
 cross_merge2= read.csv('FTICR_crosstable_rep.merged2_all_em.thres_2022-03-23.csv')
 names(cross_merge2)
 
-peaks_merge1= read.csv('FTICR_peaks_crosstable_rep.merged1_all_em.thres_2022-03-23.csv')
-names(peaks_merge1)
 
-peaks_merge2= read.csv('FTICR_peaks_crosstable_rep.merged2_all_em.thres_2022-03-23.csv')
-names(peaks_merge2)
+
+
+#Remove rows with Flags=NA
+cross_merge1=subset(cross_merge1, !is.na(cs.flag.emergent_sed))
+cross_merge1=subset(cross_merge1, !is.na(cs.flag.emergent_water))
+cross_merge2=subset(cross_merge1, !is.na(cs.flag.emergent_sed))
+cross_merge2=subset(cross_merge1, !is.na(cs.flag.emergent_water))
 
 
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
@@ -78,7 +81,8 @@ p+stat_compare_means(method = "kruskal.test")
 
 
 ########################################################################################
-#I can plot everything together
+#I can plot everything together in a simpler command
+
 ##NOSC - SED MERGE1
 res.kruskal <- cross_merge1 %>% kruskal_test( NOSC~cs.flag.emergent_sed)
 res.kruskal
@@ -90,7 +94,7 @@ cross_merge1$cs.flag.emergent_sed= factor(cross_merge1$cs.flag.emergent_sed, lev
 ggboxplot(cross_merge1, x = "cs.flag.emergent_sed" , y = "NOSC", fill = "cs.flag.emergent_sed") +
   stat_pvalue_manual(stat.test, hide.ns = FALSE) +
   theme_bw() +theme(legend.position="none")+ scale_fill_viridis(discrete = TRUE)
-setwd("C:/Users/micha/OneDrive/Documentos/GitHub/Topic1/7_molecular.traits/")
+setwd("C:/Users/micha/OneDrive/Documentos/GitHub/Topic1/7_molecular.traits/Boxplots/")
 ggsave("Boxplot_NOSC_sediment_merged1.png", dpi=300, width = 6, height = 4)
 
 ########################################################################################
@@ -226,7 +230,7 @@ stat.test6 <- stat.test6 %>% add_xy_position(x = "cs.flag.emergent_water")
 ggboxplot(cross_merge1, x = "cs.flag.emergent_water" , y = "AI_Mod", fill = "cs.flag.emergent_water") +
   stat_pvalue_manual(stat.test6, hide.ns = FALSE) +
   theme_bw() +theme(legend.position="none")+ scale_fill_viridis(discrete = TRUE)
-setwd("C:/Users/micha/OneDrive/Documentos/GitHub/Topic1/7_molecular.traits/")
+setwd("C:/Users/micha/OneDrive/Documentos/GitHub/Topic1/7_molecular.traits/Boxplots/")
 ggsave("Boxplot_AI-Mod_water_merged1.png", dpi=300, width = 6, height = 4)
 
 ######################################################################################
@@ -241,7 +245,7 @@ stat.test6a <- stat.test6a %>% add_xy_position(x = "cs.flag.emergent_water")
 ggboxplot(cross_merge1, x = "cs.flag.emergent_water" , y = "OtoC_ratio", fill = "cs.flag.emergent_water") +
   stat_pvalue_manual(stat.test6a, hide.ns = FALSE) +
   theme_bw() +theme(legend.position="none")+ scale_fill_viridis(discrete = TRUE)
-setwd("C:/Users/micha/OneDrive/Documentos/GitHub/Topic1/7_molecular.traits/")
+setwd("C:/Users/micha/OneDrive/Documentos/GitHub/Topic1/7_molecular.traits/Boxplots/")
 ggsave("Boxplot_OtoC_ratio_water_merged1.png", dpi=300, width = 6, height = 4)
 
 
@@ -257,7 +261,7 @@ stat.test6b <- stat.test6b %>% add_xy_position(x = "cs.flag.emergent_water")
 ggboxplot(cross_merge1, x = "cs.flag.emergent_water" , y = "HtoC_ratio", fill = "cs.flag.emergent_water") +
   stat_pvalue_manual(stat.test6b, hide.ns = FALSE) +
   theme_bw() +theme(legend.position="none")+ scale_fill_viridis(discrete = TRUE)
-setwd("C:/Users/micha/OneDrive/Documentos/GitHub/Topic1/7_molecular.traits/")
+setwd("C:/Users/micha/OneDrive/Documentos/GitHub/Topic1/7_molecular.traits/Boxplots/")
 ggsave("Boxplot_HtoC_ratio_water_merged1.png", dpi=300, width = 6, height = 4)
 
 
@@ -274,7 +278,7 @@ stat.test6c <- stat.test6c %>% add_xy_position(x = "cs.flag.emergent_water")
 ggboxplot(cross_merge1, x = "cs.flag.emergent_water" , y = "Mass", fill = "cs.flag.emergent_water") +
   stat_pvalue_manual(stat.test6c, hide.ns = FALSE) +
   theme_bw() +theme(legend.position="none")+ scale_fill_viridis(discrete = TRUE)
-setwd("C:/Users/micha/OneDrive/Documentos/GitHub/Topic1/7_molecular.traits/")
+setwd("C:/Users/micha/OneDrive/Documentos/GitHub/Topic1/7_molecular.traits/Boxplots/")
 ggsave("Boxplot_Mass_water_merged1.png", dpi=300, width = 6, height = 4)
 
 
@@ -301,7 +305,7 @@ cross_merge2$cs.flag.emergent_sed= factor(cross_merge2$cs.flag.emergent_sed, lev
 ggboxplot(cross_merge2, x = "cs.flag.emergent_sed" , y = "NOSC", fill = "cs.flag.emergent_sed") +
   stat_pvalue_manual(stat.test8, hide.ns = FALSE) +
   theme_bw() +theme(legend.position="none")+ scale_fill_viridis(discrete = TRUE)
-setwd("C:/Users/micha/OneDrive/Documentos/GitHub/Topic1/7_molecular.traits/")
+setwd("C:/Users/micha/OneDrive/Documentos/GitHub/Topic1/7_molecular.traits/Boxplots/")
 ggsave("Boxplot_NOSC_sediment_merged2.png", dpi=300, width = 6, height = 4)
 
 ########################################################################################
@@ -410,7 +414,7 @@ cross_merge2$cs.flag.emergent_water= factor(cross_merge2$cs.flag.emergent_water,
 ggboxplot(cross_merge2, x = "cs.flag.emergent_water" , y = "NOSC", fill = "cs.flag.emergent_water") +
   stat_pvalue_manual(stat.test11, hide.ns = FALSE) +
   theme_bw() +theme(legend.position="none")+ scale_fill_viridis(discrete = TRUE)
-setwd("C:/Users/micha/OneDrive/Documentos/GitHub/Topic1/7_molecular.traits/")
+setwd("C:/Users/micha/OneDrive/Documentos/GitHub/Topic1/7_molecular.traits/Boxplots/")
 ggsave("Boxplot_NOSC_water_merged2.png", dpi=300, width = 6, height = 4)
 
 ########################################################################################
@@ -494,6 +498,7 @@ ggsave("Boxplot_Mass_water_merged2.png", dpi=300, width = 6, height = 4)
 
 
 
+
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
 
 #DO NOT RUN
@@ -503,32 +508,32 @@ ggsave("Boxplot_Mass_water_merged2.png", dpi=300, width = 6, height = 4)
 #Plot showing number of samples per boxplot
 
 #Add number samples and mean in each boxplot
-stat_box_data <- function(y, upper_limit = max(cross_merge1$DBE) * 1.15) {
-  return( 
-    data.frame(
-      y = 0.95 * upper_limit,
-      label = paste('count =', length(y), '\n',
-                    'mean =', round(mean(y), 1), '\n')
-    )
-  )
-}
+#stat_box_data <- function(y, upper_limit = max(cross_merge1$DBE) * 1.15) {
+#  return( 
+#    data.frame(
+#      y = 0.95 * upper_limit,
+#      label = paste('count =', length(y), '\n',
+#                    'mean =', round(mean(y), 1), '\n')
+#    )
+#  )
+#}
 
-plot_DBE= ggplot(data=cross_merge1, aes(x=cs.flag.emergent_sed, y=DBE))+   
-  geom_boxplot() +stat_summary(
-  fun.data = stat_box_data, 
-  geom = "text", 
-  hjust = 0.5,
-  vjust = 0.9
-)+  geom_jitter(color="black", size=0.4, alpha=0.9)
+#plot_DBE= ggplot(data=cross_merge1, aes(x=cs.flag.emergent_sed, y=DBE))+   
+#  geom_boxplot() +stat_summary(
+#  fun.data = stat_box_data, 
+#  geom = "text", 
+#  hjust = 0.5,
+#  vjust = 0.9
+#)+  geom_jitter(color="black", size=0.4, alpha=0.9)
 
 #It is difficult to compare because the number of formula among groups is very different
 
 #Violin plot
-ggplot(data=cross_merge1, aes(x=cs.flag.emergent_sed, y=DBE))+   
-  geom_violin() +stat_summary(
-    fun.data = stat_box_data, 
-    geom = "text", 
-    hjust = 0.5,
-    vjust = 0.9
-  )+  geom_jitter(color="black", size=0.4, alpha=0.9)
-ggsave("Violin_DBE_sediment_merged1.png", dpi=300)
+#ggplot(data=cross_merge1, aes(x=cs.flag.emergent_sed, y=DBE))+   
+#  geom_violin() +stat_summary(
+#    fun.data = stat_box_data, 
+#    geom = "text", 
+#    hjust = 0.5,
+#    vjust = 0.9
+#  )+  geom_jitter(color="black", size=0.4, alpha=0.9)
+#ggsave("Violin_DBE_sediment_merged1.png", dpi=300)
