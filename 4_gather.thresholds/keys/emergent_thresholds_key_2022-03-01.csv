@@ -1,0 +1,25 @@
+".id","dataset","replicate.merging","rarity.cutoff","sample.type","cs.flag","occup.thres.min","occup.thres.max"
+"mf_rep.merged1_all_water","Molecular formulae","rep.merged1","all","water","Satellite",1,18
+"mf_rep.merged1_all_water","Molecular formulae","rep.merged1","all","water","In-between",19,79
+"mf_rep.merged1_all_water","Molecular formulae","rep.merged1","all","water","Core",80,100
+"mf_rep.merged1_all_sed","Molecular formulae","rep.merged1","all","sed","Satellite",1,10
+"mf_rep.merged1_all_sed","Molecular formulae","rep.merged1","all","sed","In-between",11,82
+"mf_rep.merged1_all_sed","Molecular formulae","rep.merged1","all","sed","Core",83,100
+"mf_rep.merged2_all_water","Molecular formulae","rep.merged2","all","water","Satellite",1,11
+"mf_rep.merged2_all_water","Molecular formulae","rep.merged2","all","water","In-between",12,83
+"mf_rep.merged2_all_water","Molecular formulae","rep.merged2","all","water","Core",84,100
+"mf_rep.merged2_all_sed","Molecular formulae","rep.merged2","all","sed","Satellite",1,16
+"mf_rep.merged2_all_sed","Molecular formulae","rep.merged2","all","sed","In-between",17,85
+"mf_rep.merged2_all_sed","Molecular formulae","rep.merged2","all","sed","Core",86,100
+"mz_rep.merged1_all_water","Peaks","rep.merged1","all","water","Satellite",1,11
+"mz_rep.merged1_all_water","Peaks","rep.merged1","all","water","In-between",12,81
+"mz_rep.merged1_all_water","Peaks","rep.merged1","all","water","Core",82,100
+"mz_rep.merged1_all_sed","Peaks","rep.merged1","all","sed","Satellite",1,11
+"mz_rep.merged1_all_sed","Peaks","rep.merged1","all","sed","In-between",12,84
+"mz_rep.merged1_all_sed","Peaks","rep.merged1","all","sed","Core",85,100
+"mz_rep.merged2_all_water","Peaks","rep.merged2","all","water","Satellite",1,11
+"mz_rep.merged2_all_water","Peaks","rep.merged2","all","water","In-between",12,84
+"mz_rep.merged2_all_water","Peaks","rep.merged2","all","water","Core",85,100
+"mz_rep.merged2_all_sed","Peaks","rep.merged2","all","sed","Satellite",1,16
+"mz_rep.merged2_all_sed","Peaks","rep.merged2","all","sed","In-between",17,84
+"mz_rep.merged2_all_sed","Peaks","rep.merged2","all","sed","Core",85,100

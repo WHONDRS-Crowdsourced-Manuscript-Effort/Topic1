@@ -1,0 +1,17 @@
+.id,dataset,replicate.merging,rarity.cutoff,sample.type,cs.flag,occup.thres.min,occup.thres.max,method
+mf_rep.merged1_all_water,Molecular formulae,rep.merged1,all,water,Satellite,1,14,PCA
+mf_rep.merged1_all_water,Molecular formulae,rep.merged1,all,water,Core,15,100,PCA
+mf_rep.merged1_all_sed,Molecular formulae,rep.merged1,all,sed,Satellite,1,5,PCA
+mf_rep.merged1_all_sed,Molecular formulae,rep.merged1,all,sed,Core,6,100,PCA
+mf_rep.merged2_all_water,Molecular formulae,rep.merged2,all,water,Satellite,1,8,PCA
+mf_rep.merged2_all_water,Molecular formulae,rep.merged2,all,water,Core,9,100,PCA
+mf_rep.merged2_all_sed,Molecular formulae,rep.merged2,all,sed,Satellite,1,9,PCA
+mf_rep.merged2_all_sed,Molecular formulae,rep.merged2,all,sed,Core,10,100,PCA
+mf_rep.merged1_all_water,Molecular formulae,rep.merged1,all,water,Satellite,1,27,RF
+mf_rep.merged1_all_water,Molecular formulae,rep.merged1,all,water,Core,28,100,RF
+mf_rep.merged1_all_sed,Molecular formulae,rep.merged1,all,sed,Satellite,1,16,RF
+mf_rep.merged1_all_sed,Molecular formulae,rep.merged1,all,sed,Core,17,100,RF
+mf_rep.merged2_all_water,Molecular formulae,rep.merged2,all,water,Satellite,1,27,RF
+mf_rep.merged2_all_water,Molecular formulae,rep.merged2,all,water,Core,28,100,RF
+mf_rep.merged2_all_sed,Molecular formulae,rep.merged2,all,sed,Satellite,1,18,RF
+mf_rep.merged2_all_sed,Molecular formulae,rep.merged2,all,sed,Core,19,100,RF
