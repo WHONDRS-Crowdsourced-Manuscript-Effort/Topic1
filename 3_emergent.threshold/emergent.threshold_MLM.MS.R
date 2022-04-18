@@ -782,7 +782,7 @@ thres.df[method == "loess.5.secderiv", deriv := "deriv"]
 # dcast(thres.df, dataset + replicate.merging + rarity.cutoff + sample.type + percentage + log.freq ~ method.uni + deriv,
 #       value.var = "smooth.value")
 
-x <- thres.df[dataset == "Peaks" & sample.type == "sed" & method.uni == "knot25",]
+#x <- thres.df[dataset == "Peaks" & sample.type == "sed" & method.uni == "knot25",]
 
 all.thres <- ddply(thres.df, .(dataset, replicate.merging, sample.type, method.uni), function(x){
   setDT(x)
@@ -818,6 +818,115 @@ all.thres <- ddply(thres.df, .(dataset, replicate.merging, sample.type, method.u
 
 })
 
+# Verifying smoothing method --------------------------------------------------------------------
+setDT(all.thres)
+all.thres[cs.flag == "Core", thres := occup.thres.min]
+all.thres[cs.flag == "Satellite", thres := occup.thres.max]
+all.thres[thres > 100, thres := NA]
+
+(p <- ggplot(all.thres[cs.flag != "In-between",], aes(x = cs.flag, y = thres)) +
+  theme_bw() +
+  geom_boxplot() +
+  facet_grid(.~dataset) +
+  labs(x = "Group", y = "Treshold: Occupancy (%)"))
+
+ggsave("./3_emergent.threshold/threshold.values_boxplot.png", p,
+       width = 8, height = 5, units = "cm", dpi = 300)
+
+
+# Identify outliers
+library(rstatix)
+
+outliers <- rbind(all.thres %>%
+  group_by(cs.flag, dataset) %>%
+  identify_outliers(occup.thres.min) %>%
+  select(dataset, replicate.merging, sample.type, method.uni) %>%
+  unique(),
+  all.thres %>%
+  group_by(cs.flag, dataset) %>%
+  identify_outliers(occup.thres.max) %>%
+  select(dataset, replicate.merging, sample.type, method.uni) %>%
+  unique()) %>% unique()
+
+View(all.thres %>%
+  group_by(cs.flag, dataset) %>%
+  identify_outliers(occup.thres.min))
+
+# how many of the smoothing methods are outliers?
+nlevels(factor(all.thres$method.uni)) *2 *2 *2
+# 104
+
+nrow(outliers) # 22 out of 104 were identified as outliers, that's not too bad
+
+# add a .1 to method to be able to merge
+outliers <- outliers %>% mutate(method.uni = paste0(method.uni, ".1"))
+# make an ID
+outliers <- outliers %>% mutate(ID = paste(replicate.merging, sample.type, method.uni, sep = "_"))
+
+# seems like three smoothing methods are the only outliers
+mf <- mf %>% mutate(ID = paste(replicate.merging, sample.type, method, sep = "_"))
+mz <- mz %>% mutate(ID = paste(replicate.merging, sample.type, method, sep = "_"))
+
+# select only those that are outliers
+sub.mf <- mf %>% filter(ID %in% outliers[outliers$dataset == "Molecular formulae",] $ID)
+sub.mz <- mz %>% filter(ID %in% outliers[outliers$dataset == "Peaks",] $ID)
+
+# plot smooth curves of outliers
+outly.df <- rbind(sub.mf, sub.mz)
+
+ggplot() +
+  theme_bw()+
+  geom_point(data = outly.df, aes(x = percentage, y = log.freq),
+             size = 1, alpha = 0.5) +
+  geom_line(data = outly.df, aes(x = percentage, y = smooth.value, colour = method)) +
+  scale_colour_viridis_d(option = "magma", end = 0.9) +
+  facet_wrap(vars(dataset, sample.type, replicate.merging, method), scale = "free_y") +
+  labs(x = "Occupancy (%)", y = "Frequency", title = "Peaks - Sediment")
+
+
+# plot derivatives to see what is wrong
+knot5 <- thres.df[deriv == "deriv" & method.uni == "knot5",]
+knot15 <- thres.df[deriv == "deriv" & method.uni == "knot15",]
+knot25 <- thres.df[deriv == "deriv" & method.uni == "knot25",]
+moving <- thres.df[deriv == "deriv" & method.uni == "moving",]
+loess5 <- thres.df[deriv == "deriv" & method.uni == "loess.5",]
+
+ggplot(knot5, aes(x = percentage, y = smooth.value)) +
+  facet_wrap(dataset ~ sample.type) +
+  geom_line(aes(colour = replicate.merging)) +
+  labs(title ="2nd derivative of knot5")
+
+ggplot(knot15, aes(x = percentage, y = smooth.value)) +
+  facet_wrap(dataset ~ sample.type) +
+  geom_line(aes(colour = replicate.merging)) +
+  labs(title ="2nd derivative of knot15")
+
+ggplot(knot25, aes(x = percentage, y = smooth.value)) +
+  facet_wrap(dataset ~ sample.type) +
+  geom_line(aes(colour = replicate.merging)) +
+  labs(title ="2nd derivative of knot25")
+
+ggplot(moving, aes(x = percentage, y = smooth.value)) +
+  facet_wrap(dataset ~ sample.type) +
+  geom_line(aes(colour = replicate.merging))  +
+  labs(title ="2nd derivative of moving")
+
+ggplot(loess5, aes(x = percentage, y = smooth.value)) +
+  facet_wrap(dataset ~ sample.type) +
+  geom_line(aes(colour = replicate.merging))+
+  labs(title ="2nd derivative of loess (0.5)")
+
+# check actual points of acceleration
+dlply(knot15, .(dataset, sample.type, replicate.merging), function(x){
+  localMinima(x$smooth.value)
+})
+
+# so what is the issue in knot methods?
+# it seems that knot5 has very few acceleration points and knot25 has too many. Hence the threshold identifying method does not work
+# for knot15 it seems that the satellite decline doesn't have a hump shape and hence, it doesn't work.
+
+
+# Identify overlap groups -------------------------------------------------------------------------------
 # Change Satellites that are 0 but classified as satellite
 
 cross <- c(list.files("./4_gather.thresholds/", pattern = "2022-03-07.csv"),
