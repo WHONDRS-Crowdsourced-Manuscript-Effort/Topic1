@@ -1030,4 +1030,130 @@ for(i in 1:length(cor.files)){
               sep = ',', dec = '.', row.names = F)
 }
 
+# Check formula assignment quality ----------------------------------------------------------------------------------------------------------
+# Have commonly removed MFs been removed?
+
+# After Herzsprung et al 2014 Anal Bioanal Chem 406:30
+
+cross <- c(list.files("./4_gather.thresholds/", pattern = "2022-03-23.csv"))
+cross <- cross[!str_detect(cross, "peaks")]
+files <- list()
+
+for(i in 1:length(cross)){
+  files[[i]] <- read.csv(paste0("./4_gather.thresholds/", cross[i]),
+                         sep = ",", dec = ".", stringsAsFactors = F) %>% setDT()
+}
+
+# What will be removed?
+any(files[[1]][OtoC_ratio < 0,]$cs.flag.emergent_sed == "Core")
+any(files[[1]][OtoC_ratio < 0,]$cs.flag.emergent_water == "Core")
+
+any(files[[1]][HtoC_ratio > 2,]$cs.flag.emergent_sed == "Core")
+any(files[[1]][HtoC_ratio > 2,]$cs.flag.emergent_water == "Core")
+
+any(files[[1]][OtoC_ratio > 1,]$cs.flag.emergent_sed == "Core")
+any(files[[1]][OtoC_ratio > 1,]$cs.flag.emergent_water == "Core")
+
+any(files[[1]][DBE_O > 10,]$cs.flag.emergent_sed == "Core") #36
+any(files[[1]][DBE_O > 10,]$cs.flag.emergent_water == "Core")
+
+# Apply filters
+cor.files <- lapply(files, function(x){
+  # apply MF elemental ranges
+  # after T. Riedel, T. Dittmar, A method detection limit for the analysis of natural
+  # organic matter via Fourier transform ion cyclotron resonance mass spectrometry. Anal. Chem. 86, 8376–8382 (2014).
+
+  x <- x[C >= 1 & C <= 130,]
+  x <- x[H >= 1 & H <= 200,]
+  x <- x[O >= 1 & O <= 50,]
+  x <- x[N >= 0 & N <= 4,]
+  x <- x[S >= 0 & S <= 2,]
+  x <- x[P >= 0 & P <= 1,]
+  
+  # remove certain MF that are unreliable
+  # Hawkes JA, D’Andrilli J, Agar JN, Barrow MP, Berg SM, Catalán N, et al. An international laboratory comparison of
+  # dissolved organic matter composition by high resolution mass spectrometry: Are we getting the same answer? Limnol Oceanogr Methods 2020; 18: 235–258. 
+  x <- x[OtoC_ratio > 0 & OtoC_ratio <= 1.2,]
+  x <- x[HtoC_ratio >= 0.3 & HtoC_ratio <= 2.2,]
+  
+  # Herzsprung P, Hertkorn N, Von Tumpling W, Harir M, Friese K, Schmitt-Kopplin P. 
+  # Understanding molecular formula assignment of Fourier transform ion cyclotron resonance
+  # mass spectrometry data of natural organic matter from a chemical point of view. Anal Bioanal Chem 2014; 406: 7977–7987. 
+  x <- x[DBE_O <= 10,]
+  
+  # Add a few more variables
+  x[, molweight := ((12.0107*C) + (1.00784*H) + (14.0067*N) + (15.999*O) + (32.065*S) + (30.974*P))]
+  
+  x[HtoC_ratio >= 1.5 & HtoC_ratio <= 2 & OtoC_ratio > 0.9 & N > 0, Group := "Peptides"]
+  x[OtoC_ratio >= 0.9 & AI_Mod < 0.5, Group := "Sugars"]
+  x[HtoC_ratio >= 2 & OtoC_ratio >= 0.9, Group := "Saturated fatty acids"]
+  x[HtoC_ratio >= 1.5 & HtoC_ratio <= 2 & N == 0, Group := "Unsaturated aliphatics"]
+  x[HtoC_ratio < 1.5 & OtoC_ratio < 0.9 & AI_Mod < 0.5, Group := "Highly unsaturated compounds"]
+  x[AI_Mod >= 0.5 & C < 12, Group := "Phenols"]
+  x[AI_Mod >= 0.5 & C >= 12, Group := "Polyphenols"]
+  x[AI_Mod > 0.66, Group := "Combusted polycondensed aromatics"]
+  x[,IOS := F]
+  x[HtoC_ratio <= 1.3 & HtoC_ratio >= 1.04 & OtoC_ratio <= 0.62 & OtoC_ratio >= 0.42 & molweight <= 388 & molweight >= 332, IOS := T]
+  x[HtoC_ratio <= 1.3 & HtoC_ratio >= 1.04 & OtoC_ratio <= 0.62 & OtoC_ratio >= 0.42 & molweight <= 548 & molweight >= 446, IOS := T]
+  
+  return(x)
+})
+
+# check if many were removed
+lapply(cor.files, nrow)
+lapply(files, nrow)
+
+ggplot(files[[2]], aes(x = OtoC_ratio, HtoC_ratio)) +
+  geom_point()
+
+files[[2]][, cs.flag.emergent_overlap := factor(cs.flag.emergent_overlap,
+                                                        levels = c("Global core","Global in-between",
+                                                                   "Global satellite",
+                                                                   "Sed Core - Water Inbetween", "Sed Core - Water Sat",
+                                                                   "Sed Inbetween - Water Core", "Sed Sat - Water Core",
+                                                                   "Sed Sat - Water Inbetween", "Sed Inbetween - Water Sat"),
+                                                        labels = c("Global core","Global in-between",
+                                                                   "Global satellite",
+                                                                   "Sed Core - Water Inbetween", "Sed Core - Water Sat",
+                                                                   "Water Core - Sed Inbetween", "Water Core - Sed Sat",
+                                                                   "Sed Sat - Water Inbetween", "Water Sat - Sed Inbetween"))]
+
+comp_groups <- data.frame(group = c("Saturated fatty acids",
+                                    "Peptides and\nunsaturated\naliphatics",
+                                    "Highly unsaturated\ncompounds",
+                                    "Vascular plant-\nderived polyphenols\nand phenols"),
+                          HtoC_ratio = c(2, 1.7, 1.25, 0.5),
+                          cs.flag.emergent_overlap = "Global core")
+
+# check if data looks fine.
+# Do some Van Krevelen
+
+p <- ggplot(cor.files[[2]][!is.na(cs.flag.emergent_overlap),], aes(x = OtoC_ratio, HtoC_ratio)) +
+  theme_bw() +
+  geom_point(aes(colour = cs.flag.emergent_overlap)) +
+  scale_colour_viridis_d(option = "magma", end = 0.9) +
+  facet_wrap(.~cs.flag.emergent_overlap) +
+  geom_hline(yintercept = 1.5, linetype = "dashed") +
+  geom_abline(intercept = 1.1, slope = -0.3, linetype = "dashed") +
+  # stat_ellipse(data = cor.files[[2]][IOS == T,], aes(x = OtoC_ratio, y = HtoC_ratio, group = IOS), type = "norm",
+  #              colour = "tomato", linetype = "dashed") +
+  labs(x = "H/C", y = "O/C") +
+  lims(x = c(0,1.25), y = c(0,2))
+
+(p <- p + geom_text(data = comp_groups, aes(x = 0.72, y = HtoC_ratio, label = group), size = 3, 
+              hjust = 0, lineheight = 0.7))
+
+# save
+ggsave("./7_molecular.traits/van_krevelen/VK_by_overlap.groups.png", p, dpi = 300,
+       height = 20, width = 28, units = "cm")
+
+# Save filtered dataset
+# write files
+for(i in 1:length(cor.files)){
+  write.table(cor.files[[i]],
+              paste0("./4_gather.thresholds/", str_replace(cross[i], pattern = "2022-03-23", 
+                                                           replacement = paste(Sys.Date()))),
+              sep = ',', dec = '.', row.names = F)
+}
+
 #-- End: Addition by MS
