@@ -10,7 +10,8 @@ df = read.csv("FTICR_crosstable_rep.merged2_all_em.thres_2022-03-23.csv")
 
 df = df[!is.na(df$cs.flag.emergent_sed),]
 
-data = df
+data = df[grep("Core|Satellite",df$cs.flag.emergent_sed),]
+
 row.names(data) = data$Mass
 data = data[,2:21] # Removing the column with core and Satellite specifications from the PCA and removing the first column since it is the mass
 
