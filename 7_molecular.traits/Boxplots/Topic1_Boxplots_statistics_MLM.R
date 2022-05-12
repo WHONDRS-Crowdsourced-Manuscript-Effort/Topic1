@@ -15,16 +15,20 @@ library(FSA)
 library(viridis)
 library(ggpubr)
 library(rstatix)
+library(gridExtra)
+
+
+#-->  INPUT DATA #
 
 #Path
 setwd('C:/Users/micha/OneDrive/Documentos/GitHub/Topic1/4_gather.thresholds')
 
 
 #Input tables
-cross_merge1= read.csv('FTICR_crosstable_rep.merged1_all_em.thres_2022-03-23.csv')
+cross_merge1= read.csv('FTICR_crosstable_rep.merged1_all_em.thres_2022-05-05.csv')
 names(cross_merge1)
 
-cross_merge2= read.csv('FTICR_crosstable_rep.merged2_all_em.thres_2022-03-23.csv')
+cross_merge2= read.csv('FTICR_crosstable_rep.merged2_all_em.thres_2022-05-05.csv')
 names(cross_merge2)
 
 
@@ -495,8 +499,134 @@ ggboxplot(cross_merge2, x = "cs.flag.emergent_water" , y = "Mass", fill = "cs.fl
 ggsave("Boxplot_Mass_water_merged2.png", dpi=300, width = 6, height = 4)
 
 
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
+
+#Date: 2022-05-12
+
+#Andrew's idea, need to work on that
+
+# normalise relative to contribution in pool
+cross_merge1$rel_occ_sed <- cross_merge1$perc.occup_sed/sum(cross_merge1$perc.occup_sed)
+cross_merge1$rel_occ_water <- cross_merge1$perc.occup_wat/sum(cross_merge1$perc.occup_wat)
+
+m1 <- lm(NOSC~cs.flag.emergent_sed+scale(rel_occ_sed)+scale(rel_occ_water),data=cross_merge1)
+summary(m1)
 
 
+    #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%#
+#     DENSITY PLOTS AND LINEAR REGRESSIONS
+    #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%#
+
+
+##-> Sediment Merge 1
+#cs.flag.emergent_sed
+
+#DBE
+dens_sed1=ggplot(cross_merge1, aes(x=DBE, fill=cs.flag.emergent_sed))+geom_density(alpha=0.5)
+
+sed1=dens_sed1+scale_fill_manual(values=c("#4682B4" ,"#B4464B", "#B4AF46"))+theme_bw()+  
+  xlab(bquote(DBE))+ ylab(bquote(Density))+ #EDIT!
+  theme(aspect.ratio=1, strip.text.x = element_text(size = 12),legend.title=element_blank(), legend.text=element_text(size=14), axis.title.y = element_text(size = 16), axis.text.y = element_text(size = 14), axis.title.x = element_text(size=16), axis.text.x = element_text(size = 14))+
+  theme(legend.position = c(0.75, 0.8),legend.box="horizontal", legend.background = element_rect(fill = "white"), 
+        legend.text=element_text(size=9))
+
+#AImod
+dens_sed2=ggplot(cross_merge1, aes(x=AI_Mod, fill=cs.flag.emergent_sed))+geom_density(alpha=0.5)
+
+sed2=dens_sed2+scale_fill_manual(values=c("#4682B4" ,"#B4464B", "#B4AF46"))+theme_bw()+  
+  xlab(bquote(AI[mod]))+ ylab(bquote(Density))+ #EDIT!
+  theme(aspect.ratio=1, strip.text.x = element_text(size = 12),legend.title=element_blank(), legend.text=element_text(size=14), axis.title.y = element_text(size = 16), axis.text.y = element_text(size = 14), axis.title.x = element_text(size=16), axis.text.x = element_text(size = 14))+
+  theme(legend.position = c(0.8, 0.85),legend.box="horizontal", legend.background = element_rect(fill = "white"), 
+        legend.text=element_text(size=9))+theme(legend.position = "none")
+
+#NOSC
+dens_sed3=ggplot(cross_merge1, aes(x=NOSC, fill=cs.flag.emergent_sed))+geom_density(alpha=0.5)
+
+sed3=dens_sed3+scale_fill_manual(values=c("#4682B4" ,"#B4464B", "#B4AF46"))+theme_bw()+  
+  xlab(bquote(NOSC))+ ylab(bquote(Density))+ #EDIT!
+  theme(aspect.ratio=1, strip.text.x = element_text(size = 12),legend.title=element_blank(), legend.text=element_text(size=14), axis.title.y = element_text(size = 16), axis.text.y = element_text(size = 14), axis.title.x = element_text(size=16), axis.text.x = element_text(size = 14))+
+  theme(legend.position = c(0.8, 0.85),legend.box="horizontal", legend.background = element_rect(fill = "white"), 
+        legend.text=element_text(size=9))+theme(legend.position = "none")
+
+#Mass
+dens_sed4=ggplot(cross_merge1, aes(x=Mass, fill=cs.flag.emergent_sed))+geom_density(alpha=0.5)
+
+sed4=dens_sed4+scale_fill_manual(values=c("#4682B4" ,"#B4464B", "#B4AF46"))+theme_bw()+  
+  xlab(bquote(Mass))+ ylab(bquote(Density))+ #EDIT!
+  theme(aspect.ratio=1, strip.text.x = element_text(size = 12),legend.title=element_blank(), legend.text=element_text(size=14), axis.title.y = element_text(size = 16), axis.text.y = element_text(size = 14), axis.title.x = element_text(size=16), axis.text.x = element_text(size = 14))+
+  theme(legend.position = c(0.8, 0.85),legend.box="horizontal", legend.background = element_rect(fill = "white"), 
+        legend.text=element_text(size=9))+theme(legend.position = "none")
+
+
+#Arrange Plots same figure
+grob_sed1=gridExtra::grid.arrange(sed1, sed2, sed3, sed4, nrow=2, top = "Emergent Merge 1 Sediment")
+setwd("C:/Users/micha/OneDrive/Documentos/GitHub/Topic1/7_molecular.traits/Boxplots")
+ggsave("Panel_Density_sediment_merge1.png", dpi=300, height = 7, width=8, grob_sed1)
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
+##-> Water Merge 1
+#cs.flag.emergent_sed
+
+#DBE
+dens_wat1=ggplot(cross_merge1, aes(x=DBE, fill=cs.flag.emergent_water))+geom_density(alpha=0.5)
+
+wat1=dens_wat1+scale_fill_manual(values=c("#4682B4" ,"#B4464B", "#B4AF46"))+theme_bw()+  
+  xlab(bquote(DBE))+ ylab(bquote(Density))+ #EDIT!
+  theme(aspect.ratio=1, strip.text.x = element_text(size = 12),legend.title=element_blank(), legend.text=element_text(size=14), axis.title.y = element_text(size = 16), axis.text.y = element_text(size = 14), axis.title.x = element_text(size=16), axis.text.x = element_text(size = 14))+
+  theme(legend.position = c(0.75, 0.8),legend.box="horizontal", legend.background = element_rect(fill = "white"), 
+        legend.text=element_text(size=9))
+
+#AImod
+dens_wat2=ggplot(cross_merge1, aes(x=AI_Mod, fill=cs.flag.emergent_water))+geom_density(alpha=0.5)
+
+wat2=dens_wat2+scale_fill_manual(values=c("#4682B4" ,"#B4464B", "#B4AF46"))+theme_bw()+  
+  xlab(bquote(AI[mod]))+ ylab(bquote(Density))+ #EDIT!
+  theme(aspect.ratio=1, strip.text.x = element_text(size = 12),legend.title=element_blank(), legend.text=element_text(size=14), axis.title.y = element_text(size = 16), axis.text.y = element_text(size = 14), axis.title.x = element_text(size=16), axis.text.x = element_text(size = 14))+
+  theme(legend.position = c(0.8, 0.85),legend.box="horizontal", legend.background = element_rect(fill = "white"), 
+        legend.text=element_text(size=9))+theme(legend.position = "none")
+
+#NOSC
+dens_wat3=ggplot(cross_merge1, aes(x=NOSC, fill=cs.flag.emergent_water))+geom_density(alpha=0.5)
+
+wat3=dens_wat3+scale_fill_manual(values=c("#4682B4" ,"#B4464B", "#B4AF46"))+theme_bw()+  
+  xlab(bquote(NOSC))+ ylab(bquote(Density))+ #EDIT!
+  theme(aspect.ratio=1, strip.text.x = element_text(size = 12),legend.title=element_blank(), legend.text=element_text(size=14), axis.title.y = element_text(size = 16), axis.text.y = element_text(size = 14), axis.title.x = element_text(size=16), axis.text.x = element_text(size = 14))+
+  theme(legend.position = c(0.8, 0.85),legend.box="horizontal", legend.background = element_rect(fill = "white"), 
+        legend.text=element_text(size=9))+theme(legend.position = "none")
+
+#Mass
+dens_wat4=ggplot(cross_merge1, aes(x=Mass, fill=cs.flag.emergent_water))+geom_density(alpha=0.5)
+
+wat4=dens_wat4+scale_fill_manual(values=c("#4682B4" ,"#B4464B", "#B4AF46"))+theme_bw()+  
+  xlab(bquote(Mass))+ ylab(bquote(Density))+ #EDIT!
+  theme(aspect.ratio=1, strip.text.x = element_text(size = 12),legend.title=element_blank(), legend.text=element_text(size=14), axis.title.y = element_text(size = 16), axis.text.y = element_text(size = 14), axis.title.x = element_text(size=16), axis.text.x = element_text(size = 14))+
+  theme(legend.position = c(0.8, 0.85),legend.box="horizontal", legend.background = element_rect(fill = "white"), 
+        legend.text=element_text(size=9))+theme(legend.position = "none")
+
+
+#Arrange Plots same figure
+grob_wat1=gridExtra::grid.arrange(wat1, wat2, wat3, wat4, nrow=2, top = "Emergent Merge 1 Water")
+setwd("C:/Users/micha/OneDrive/Documentos/GitHub/Topic1/7_molecular.traits/Boxplots")
+ggsave("Panel_Density_water_merge1.png", dpi=300, height = 7, width=8, grob_wat1)
+
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
+#Class Histograms Subdivided
+
+
+g_sed=ggplot(cross_merge1, aes(x = cs.flag.emergent_sed, fill = Class)) +theme_classic()+
+  geom_bar(position = "fill") +labs(title="Sediment", X=" ", y="Relative Contribution (%)")+
+  theme(aspect.ratio=1, strip.text.x = element_text(size = 12), axis.title.y = element_text(size = 14), axis.text.y = element_text(size = 12), axis.title.x = element_blank(), axis.text.x = element_text(size = 12))+
+    scale_fill_viridis(discrete=TRUE)+theme(legend.position = "none")
+
+g_water=ggplot(cross_merge1, aes(x = cs.flag.emergent_water, fill = Class)) +theme_classic()+
+  geom_bar(position = "fill") +labs(title="Water", X=" ", y="Relative Contribution (%)")+
+  theme(aspect.ratio=1, strip.text.x = element_text(size = 12),legend.title=element_text(12), legend.text=element_text(size=10), axis.text.y = element_blank(), axis.ticks.y = element_blank(), axis.title.y = element_blank() , axis.title.x = element_blank(), axis.text.x = element_text(size = 12))+
+  scale_fill_viridis(discrete=TRUE)
+
+g=arrangeGrob(g_sed, g_water, nrow=1, widths=c(2.5,3))
+setwd("C:/Users/micha/OneDrive/Documentos/GitHub/Topic1/7_molecular.traits/Boxplots")
+ggsave("Panel_Histogram_Class_merge1.png", dpi=300, height = 5, width=8, g)
 
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
