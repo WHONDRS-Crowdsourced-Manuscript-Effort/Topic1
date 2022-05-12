@@ -512,6 +512,16 @@ cross_merge1$rel_occ_water <- cross_merge1$perc.occup_wat/sum(cross_merge1$perc.
 m1 <- lm(NOSC~cs.flag.emergent_sed+scale(rel_occ_sed)+scale(rel_occ_water),data=cross_merge1)
 summary(m1)
 
+# Andrew is now adding some extra code here
+# the goal is to estimate group means that account for differences in occupancy 
+# the present analysis assumes that each molecule contributes equally
+# but some are found 95% of the time vs 1% of the time, so we want to weight by that contribution to the pool
+library(emmeans)
+emmeans(m1,'cs.flag.emergent_sed')
+# we would then want to repeat these analyses across the different traits 
+
+
+
 
     #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%#
 #     DENSITY PLOTS AND LINEAR REGRESSIONS
@@ -629,7 +639,16 @@ setwd("C:/Users/micha/OneDrive/Documentos/GitHub/Topic1/7_molecular.traits/Boxpl
 ggsave("Panel_Histogram_Class_merge1.png", dpi=300, height = 5, width=8, g)
 
 
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
+# addition from AJ Tanentzap
+# what proportion of core molecules are identical between sediment and water versus satellite?
+sum(cross_merge1$cs.flag.emergent_sed == 'Core' & cross_merge1$cs.flag.emergent_water == 'Core') / sum(cross_merge1$cs.flag.emergent_sed == 'Core' | cross_merge1$cs.flag.emergent_water == 'Core')
+sum(cross_merge1$cs.flag.emergent_sed == 'Satellite' & cross_merge1$cs.flag.emergent_water == 'Satellite') / sum(cross_merge1$cs.flag.emergent_sed == 'Satellite' | cross_merge1$cs.flag.emergent_water == 'Satellite')
+# is the percentage of identical core compounds higher when we look at those that are everywhere
+sum((cross_merge1$cs.flag.emergent_sed == 'Core' & cross_merge1$perc.occup_sed == 100) & (cross_merge1$cs.flag.emergent_water == 'Core' & cross_merge1$perc.occup_water == 100)) /
+	sum((cross_merge1$cs.flag.emergent_sed == 'Core' & cross_merge1$perc.occup_sed == 100) | (cross_merge1$cs.flag.emergent_water == 'Core' & cross_merge1$perc.occup_water == 100))
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
+
 
 #DO NOT RUN
 

@@ -11,7 +11,22 @@ cross_merge2 = read.csv('FTICR_crosstable_rep.merged2_all_em.thres_2022-03-18.cs
 
 
 ###############################################################################
-# 2) Van Krevelen plots to visualise if core formulas are different than satellite ones
+# 2) check classification errors between the different methods
+###############################################################################
+# confirm that tables are in the same order
+any(cross_merge1$MolForm != cross_merge2$MolForm)
+
+# check what is classifying between water/sediment
+with(cross_merge1, table(cs.flag.emergent_sed,cs.flag.emergent_water))
+
+# merge methods now to create similar table and find that results are identical between classifications
+cross_merge_met <- merge(cross_merge1[,c('MolForm','cs.flag.emergent_water','cs.flag.emergent_sed')],cross_merge2[,c('MolForm','cs.flag.emergent_water','cs.flag.emergent_sed')],by='MolForm')
+with(cross_merge_met, table(cs.flag.emergent_water.x,cs.flag.emergent_water.y))
+with(cross_merge_met, table(cs.flag.emergent_sed.x,cs.flag.emergent_sed.y))
+
+
+###############################################################################
+# 3) Van Krevelen plots to visualise if core formulas are different than satellite ones
 ###############################################################################
 #pdf("VK_emergent_merge2.pdf", width=6.3, height=3.9, useDingbats=F)
 par(mfrow=c(1,2))
@@ -28,7 +43,7 @@ with(cross_merge2[which(cross_merge2$cs.flag.emergent_sed == 'Core'),], points(O
  
  
 ###############################################################################
-# 2) visualise if core formulas are comprised of different compound classes than satellite ones
+# 4) visualise if core formulas are comprised of different compound classes than satellite ones
 ###############################################################################
 # compile aggregated compound class data
 sed_emerge_merge2_comp_class <- with(cross_merge2, table(bs2_class,cs.flag.emergent_sed))
@@ -49,7 +64,7 @@ legend("right", rownames(wat_emerge_merge2_comp_class), fill=topo.colors(10),bty
  
 
 ###############################################################################
-# 3) plot if occupancy of MFs in sediment and water is correlated and differently between C vs S
+# 5) plot if occupancy of MFs in sediment and water is correlated and differently between C vs S
 ###############################################################################
 #pdf("occupancy_by_type_source.pdf", width=6, height=6)
 with(cross_merge2, plot(perc.occup_sed,perc.occup_water,pch=NA,las=1,xlab='sediment occupancy (%)',ylab='water occupancy (%)'))
