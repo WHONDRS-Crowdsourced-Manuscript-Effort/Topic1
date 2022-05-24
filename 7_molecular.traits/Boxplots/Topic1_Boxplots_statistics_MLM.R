@@ -16,12 +16,14 @@ library(viridis)
 library(ggpubr)
 library(rstatix)
 library(gridExtra)
+library(rstatix)
+library(dplyr)
 
 
 #-->  INPUT DATA #
 
 #Path
-setwd('C:/Users/micha/OneDrive/Documentos/GitHub/Topic1/4_gather.thresholds')
+setwd('C:/Users/micha/OneDrive/Área de Trabalho/Topic1/4_gather.thresholds')
 
 
 #Input tables
@@ -94,11 +96,11 @@ stat.test
 stat.test <- stat.test %>% add_xy_position(x = "cs.flag.emergent_sed")
 
 cross_merge1$cs.flag.emergent_sed= factor(cross_merge1$cs.flag.emergent_sed, levels= c("Core", "In-between", "Satellite", "NA"))
-ggboxplot(cross_merge1, x = "cs.flag.emergent_sed" , y = "NOSC", fill = "cs.flag.emergent_sed") +
+plot1=ggboxplot(cross_merge1, x = "cs.flag.emergent_sed" , y = "NOSC", fill = "cs.flag.emergent_sed") +
   stat_pvalue_manual(stat.test, hide.ns = FALSE) +
-  theme_bw() +theme(legend.position="none")+ scale_fill_viridis(discrete = TRUE)
-setwd("C:/Users/micha/OneDrive/Documentos/GitHub/Topic1/7_molecular.traits/Boxplots/")
-ggsave("Boxplot_NOSC_sediment_merged1.png", dpi=300, width = 6, height = 4)
+  theme_bw() +theme(legend.position="none", axis.title.x=element_blank())+ scale_fill_viridis(discrete = TRUE)
+#setwd("C:/Users/micha/OneDrive/Documentos/GitHub/Topic1/7_molecular.traits/Boxplots/")
+#ggsave("Boxplot_NOSC_sediment_merged1.png", dpi=300, width = 6, height = 4)
 
 ########################################################################################
 ## DBE - SED MERGE1
@@ -110,11 +112,11 @@ stat.test2
 stat.test2 <- stat.test2 %>% add_xy_position(x = "cs.flag.emergent_sed")
 
 
-ggboxplot(cross_merge1, x = "cs.flag.emergent_sed" , y = "DBE", fill = "cs.flag.emergent_sed") +
+plot2=ggboxplot(cross_merge1, x = "cs.flag.emergent_sed" , y = "DBE", fill = "cs.flag.emergent_sed") +
   stat_pvalue_manual(stat.test2, hide.ns = FALSE) +
-  theme_bw() +theme(legend.position="none")+ scale_fill_viridis(discrete = TRUE)
+  theme_bw() +theme(legend.position="none", axis.title.x=element_blank())+ scale_fill_viridis(discrete = TRUE)
 
-ggsave("Boxplot_DBE_sediment_merged1.png", dpi=300, width = 6, height = 4)
+#ggsave("Boxplot_DBE_sediment_merged1.png", dpi=300, width = 6, height = 4)
 
 ######################################################################################
 ## Ai Mod - SED MERGE1
@@ -125,11 +127,11 @@ stat.test3 <-cross_merge1 %>% dunn_test( AI_Mod~cs.flag.emergent_sed, p.adjust.m
 stat.test3
 stat.test3 <- stat.test3 %>% add_xy_position(x = "cs.flag.emergent_sed")
 
-ggboxplot(cross_merge1, x = "cs.flag.emergent_sed" , y = "AI_Mod", fill = "cs.flag.emergent_sed") +
+plot3=ggboxplot(cross_merge1, x = "cs.flag.emergent_sed" , y = "AI_Mod", fill = "cs.flag.emergent_sed") +
   stat_pvalue_manual(stat.test3, hide.ns = FALSE) +
-  theme_bw() +theme(legend.position="none")+ scale_fill_viridis(discrete = TRUE)
+  theme_bw() +theme(legend.position="none", axis.title.x=element_blank())+ scale_fill_viridis(discrete = TRUE)
 
-ggsave("Boxplot_AI-Mod_sediment_merged1.png", dpi=300, width = 6, height = 4)
+#ggsave("Boxplot_AI-Mod_sediment_merged1.png", dpi=300, width = 6, height = 4)
 
 
 ######################################################################################
@@ -141,11 +143,11 @@ stat.test3a <-cross_merge1 %>% dunn_test( OtoC_ratio~cs.flag.emergent_sed, p.adj
 stat.test3a
 stat.test3a <- stat.test3a %>% add_xy_position(x = "cs.flag.emergent_sed")
 
-ggboxplot(cross_merge1, x = "cs.flag.emergent_sed" , y = "OtoC_ratio", fill = "cs.flag.emergent_sed") +
+plot3a=ggboxplot(cross_merge1, x = "cs.flag.emergent_sed" , y = "OtoC_ratio", fill = "cs.flag.emergent_sed") +
   stat_pvalue_manual(stat.test3a, hide.ns = FALSE) +
-  theme_bw() +theme(legend.position="none")+ scale_fill_viridis(discrete = TRUE)
+  theme_bw() +theme(legend.position="none", axis.title.x=element_blank())+ scale_fill_viridis(discrete = TRUE)
 
-ggsave("Boxplot_OtoC_ratio_sediment_merged1.png", dpi=300, width = 6, height = 4)
+#ggsave("Boxplot_OtoC_ratio_sediment_merged1.png", dpi=300, width = 6, height = 4)
 
 ######################################################################################
 ## H/C_ratio - SED MERGE1
@@ -156,11 +158,11 @@ stat.test3b <-cross_merge1 %>% dunn_test( HtoC_ratio~cs.flag.emergent_sed, p.adj
 stat.test3b
 stat.test3b <- stat.test3b %>% add_xy_position(x = "cs.flag.emergent_sed")
 
-ggboxplot(cross_merge1, x = "cs.flag.emergent_sed" , y = "HtoC_ratio", fill = "cs.flag.emergent_sed") +
+plot3b=ggboxplot(cross_merge1, x = "cs.flag.emergent_sed" , y = "HtoC_ratio", fill = "cs.flag.emergent_sed") +
   stat_pvalue_manual(stat.test3b, hide.ns = FALSE) +
-  theme_bw() +theme(legend.position="none")+ scale_fill_viridis(discrete = TRUE)
+  theme_bw() +theme(legend.position="none", axis.title.x=element_blank())+ scale_fill_viridis(discrete = TRUE)
 
-ggsave("Boxplot_HtoC_ratio_sediment_merged1.png", dpi=300, width = 6, height = 4)
+#ggsave("Boxplot_HtoC_ratio_sediment_merged1.png", dpi=300, width = 6, height = 4)
 
 ######################################################################################
 ## Mass
@@ -171,11 +173,20 @@ stat.test3c <-cross_merge1 %>% dunn_test( Mass~cs.flag.emergent_sed, p.adjust.me
 stat.test3c
 stat.test3c <- stat.test3c %>% add_xy_position(x = "cs.flag.emergent_sed")
 
-ggboxplot(cross_merge1, x = "cs.flag.emergent_sed" , y = "Mass", fill = "cs.flag.emergent_sed") +
+plot3c=ggboxplot(cross_merge1, x = "cs.flag.emergent_sed" , y = "Mass", fill = "cs.flag.emergent_sed") +
   stat_pvalue_manual(stat.test3c, hide.ns = FALSE) +
-  theme_bw() +theme(legend.position="none")+ scale_fill_viridis(discrete = TRUE)
+  theme_bw() +theme(legend.position="none", axis.title.x=element_blank())+ scale_fill_viridis(discrete = TRUE)
 
-ggsave("Boxplot_Mass_sediment_merged1.png", dpi=300, width = 6, height = 4)
+#ggsave("Boxplot_Mass_sediment_merged1.png", dpi=300, width = 6, height = 4)
+
+
+
+#Arrange plots together
+
+setwd("C:/Users/micha/OneDrive/Área de Trabalho/Topic1/7_molecular.traits/Boxplots/")
+#Arrange plots together
+grob_sed1=gridExtra::grid.arrange(plot1, plot2, plot3, plot3c, nrow=2, top = "Sediment")
+ggsave("Boxplots_arranged_sediment_merged1.png", dpi=300, width = 6, height = 4, grob_sed1)
 
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
@@ -200,11 +211,11 @@ stat.test4
 stat.test4 <- stat.test4 %>% add_xy_position(x = "cs.flag.emergent_water")
 
 cross_merge1$cs.flag.emergent_water= factor(cross_merge1$cs.flag.emergent_water, levels= c("Core", "In-between", "Satellite", "NA"))
-ggboxplot(cross_merge1, x = "cs.flag.emergent_water" , y = "NOSC", fill = "cs.flag.emergent_water") +
+plot4=ggboxplot(cross_merge1, x = "cs.flag.emergent_water" , y = "NOSC", fill = "cs.flag.emergent_water") +
   stat_pvalue_manual(stat.test4, hide.ns = FALSE) +
-  theme_bw() +theme(legend.position="none")+ scale_fill_viridis(discrete = TRUE)
-setwd("C:/Users/micha/OneDrive/Documentos/GitHub/Topic1/7_molecular.traits/Boxplots/")
-ggsave("Boxplot_NOSC_water_merged1.png", dpi=300, width = 6, height = 4)
+  theme_bw() +theme(legend.position="none", axis.title.x = element_blank())+ scale_fill_viridis(discrete = TRUE)
+#setwd("C:/Users/micha/OneDrive/Documentos/GitHub/Topic1/7_molecular.traits/Boxplots/")
+#ggsave("Boxplot_NOSC_water_merged1.png", dpi=300, width = 6, height = 4)
 
 ########################################################################################
 ## DBE - WATER MERGE1
@@ -215,11 +226,11 @@ stat.test5 <-cross_merge1 %>% dunn_test( DBE~cs.flag.emergent_water, p.adjust.me
 stat.test5
 stat.test5 <- stat.test5 %>% add_xy_position(x = "cs.flag.emergent_water")
 
-ggboxplot(cross_merge1, x = "cs.flag.emergent_water" , y = "DBE", fill = "cs.flag.emergent_water") +
+plot5=ggboxplot(cross_merge1, x = "cs.flag.emergent_water" , y = "DBE", fill = "cs.flag.emergent_water") +
   stat_pvalue_manual(stat.test5, hide.ns = FALSE) +
-  theme_bw() +theme(legend.position="none")+ scale_fill_viridis(discrete = TRUE)
+  theme_bw() +theme(legend.position="none", axis.title.x = element_blank())+ scale_fill_viridis(discrete = TRUE)
 
-ggsave("Boxplot_DBE_water_merged1.png", dpi=300, width = 6, height = 4)
+#ggsave("Boxplot_DBE_water_merged1.png", dpi=300, width = 6, height = 4)
 
 ######################################################################################
 ## Ai Mod - WATER MERGE1
@@ -230,11 +241,11 @@ stat.test6 <-cross_merge1 %>% dunn_test( AI_Mod~cs.flag.emergent_water, p.adjust
 stat.test6
 stat.test6 <- stat.test6 %>% add_xy_position(x = "cs.flag.emergent_water")
 
-ggboxplot(cross_merge1, x = "cs.flag.emergent_water" , y = "AI_Mod", fill = "cs.flag.emergent_water") +
+plot6=ggboxplot(cross_merge1, x = "cs.flag.emergent_water" , y = "AI_Mod", fill = "cs.flag.emergent_water") +
   stat_pvalue_manual(stat.test6, hide.ns = FALSE) +
-  theme_bw() +theme(legend.position="none")+ scale_fill_viridis(discrete = TRUE)
-setwd("C:/Users/micha/OneDrive/Documentos/GitHub/Topic1/7_molecular.traits/Boxplots/")
-ggsave("Boxplot_AI-Mod_water_merged1.png", dpi=300, width = 6, height = 4)
+  theme_bw() +theme(legend.position="none", axis.title.x = element_blank())+ scale_fill_viridis(discrete = TRUE)
+#setwd("C:/Users/micha/OneDrive/Documentos/GitHub/Topic1/7_molecular.traits/Boxplots/")
+#ggsave("Boxplot_AI-Mod_water_merged1.png", dpi=300, width = 6, height = 4)
 
 ######################################################################################
 ## O/C ratio - WATER MERGE1
@@ -248,8 +259,8 @@ stat.test6a <- stat.test6a %>% add_xy_position(x = "cs.flag.emergent_water")
 ggboxplot(cross_merge1, x = "cs.flag.emergent_water" , y = "OtoC_ratio", fill = "cs.flag.emergent_water") +
   stat_pvalue_manual(stat.test6a, hide.ns = FALSE) +
   theme_bw() +theme(legend.position="none")+ scale_fill_viridis(discrete = TRUE)
-setwd("C:/Users/micha/OneDrive/Documentos/GitHub/Topic1/7_molecular.traits/Boxplots/")
-ggsave("Boxplot_OtoC_ratio_water_merged1.png", dpi=300, width = 6, height = 4)
+#setwd("C:/Users/micha/OneDrive/Documentos/GitHub/Topic1/7_molecular.traits/Boxplots/")
+#ggsave("Boxplot_OtoC_ratio_water_merged1.png", dpi=300, width = 6, height = 4)
 
 
 ######################################################################################
@@ -264,8 +275,8 @@ stat.test6b <- stat.test6b %>% add_xy_position(x = "cs.flag.emergent_water")
 ggboxplot(cross_merge1, x = "cs.flag.emergent_water" , y = "HtoC_ratio", fill = "cs.flag.emergent_water") +
   stat_pvalue_manual(stat.test6b, hide.ns = FALSE) +
   theme_bw() +theme(legend.position="none")+ scale_fill_viridis(discrete = TRUE)
-setwd("C:/Users/micha/OneDrive/Documentos/GitHub/Topic1/7_molecular.traits/Boxplots/")
-ggsave("Boxplot_HtoC_ratio_water_merged1.png", dpi=300, width = 6, height = 4)
+#setwd("C:/Users/micha/OneDrive/Documentos/GitHub/Topic1/7_molecular.traits/Boxplots/")
+#ggsave("Boxplot_HtoC_ratio_water_merged1.png", dpi=300, width = 6, height = 4)
 
 
 
@@ -278,12 +289,16 @@ stat.test6c <-cross_merge1 %>% dunn_test( Mass~cs.flag.emergent_water, p.adjust.
 stat.test6c
 stat.test6c <- stat.test6c %>% add_xy_position(x = "cs.flag.emergent_water")
 
-ggboxplot(cross_merge1, x = "cs.flag.emergent_water" , y = "Mass", fill = "cs.flag.emergent_water") +
+plot6c=ggboxplot(cross_merge1, x = "cs.flag.emergent_water" , y = "Mass", fill = "cs.flag.emergent_water") +
   stat_pvalue_manual(stat.test6c, hide.ns = FALSE) +
-  theme_bw() +theme(legend.position="none")+ scale_fill_viridis(discrete = TRUE)
-setwd("C:/Users/micha/OneDrive/Documentos/GitHub/Topic1/7_molecular.traits/Boxplots/")
-ggsave("Boxplot_Mass_water_merged1.png", dpi=300, width = 6, height = 4)
+  theme_bw() +theme(legend.position="none", axis.title.x = element_blank())+ scale_fill_viridis(discrete = TRUE)
+#setwd("C:/Users/micha/OneDrive/Documentos/GitHub/Topic1/7_molecular.traits/Boxplots/")
+#ggsave("Boxplot_Mass_water_merged1.png", dpi=300, width = 6, height = 4)
 
+setwd("C:/Users/micha/OneDrive/Área de Trabalho/Topic1/7_molecular.traits/Boxplots/")
+#Arrange plots together
+grob_water1=gridExtra::grid.arrange(plot4, plot5, plot6, plot6c, nrow=2, top = "Water")
+ggsave("Boxplots_arranged_water_merged1.png", dpi=300, width = 6, height = 4, grob_water1)
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
 ########################
