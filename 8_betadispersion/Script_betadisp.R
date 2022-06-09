@@ -13,7 +13,7 @@ crosstab = read.csv("/../FTICR_crosstable_rep.merged1_all_em.thres_2022-03-18.cs
   unite(col = "cs.flag.emergent_overlap", cs.flag.emergent_sed:cs.flag.emergent_water ,sep = "-", remove = F)
 
 mergedtab <- merge (crosstab,molecules,by.x = "MolForm",by.y = "ID",0,all = F)
-data <- filter(mergedtab, cs.flag.emergent_sed == "Core" | cs.flag.emergent_water == "Core")
+data <- filter(mergedtab, cs.flag.emergent_sed == "Core" | cs.flag.emergent_water == "Core") #chage here for Satellite analysis
 mergeddata <- data[,52:239]
 row.names(mergeddata) <- data$MolForm
 write.csv(mergeddata, file="/../mergeddata.csv") #It was the only way I found to force R to understand the dataset properly
