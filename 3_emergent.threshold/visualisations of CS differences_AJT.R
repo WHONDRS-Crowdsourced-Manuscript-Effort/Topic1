@@ -74,3 +74,9 @@ with(cross_merge2[which(cross_merge2$cs.flag.emergent_sed == 'Satellite' & cross
 with(cross_merge2[which(cross_merge2$cs.flag.emergent_sed == 'In-between' & cross_merge2$cs.flag.emergent_water == 'In-between'),], points(perc.occup_sed,perc.occup_water,pch=19,col=alpha('green', 0.1)))
 #dev.off() 
  
+# derive statistics for this comparison, allow for oocupancy relationship to vary by core-sat class
+occupancy_by_type_model <- glm(I(perc.occup_water/100) ~ scale(I(perc.occup_sed/100))*cs.flag.emergent_water, 
+								data = cross_merge2[ which( (cross_merge2$cs.flag.emergent_sed == 'Core' & cross_merge2$cs.flag.emergent_water == 'Core') |
+															(cross_merge2$cs.flag.emergent_sed == 'Satellite' & cross_merge2$cs.flag.emergent_water == 'Satellite') |
+															(cross_merge2$cs.flag.emergent_sed == 'In-between' & cross_merge2$cs.flag.emergent_water == 'In-between') ),]
+								)
