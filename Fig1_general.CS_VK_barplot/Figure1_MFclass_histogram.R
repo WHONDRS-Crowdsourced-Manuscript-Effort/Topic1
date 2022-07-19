@@ -23,16 +23,12 @@ setwd("")
 cross_merge1= read.csv('FTICR_crosstable_rep.merged1_all_em.thres_2022-05-05.csv')
 names(cross_merge1)
 
-cross_merge2= read.csv('FTICR_crosstable_rep.merged2_all_em.thres_2022-05-05.csv')
-names(cross_merge2)
-
 
 
 ### Remove rows with Flags=NA
 cross_merge1=subset(cross_merge1, !is.na(cs.flag.emergent_sed))
 cross_merge1=subset(cross_merge1, !is.na(cs.flag.emergent_water))
-cross_merge2=subset(cross_merge1, !is.na(cs.flag.emergent_sed))
-cross_merge2=subset(cross_merge1, !is.na(cs.flag.emergent_water))
+
 
 
 ### PLot figures
