@@ -1106,16 +1106,26 @@ lapply(files, nrow)
 ggplot(files[[2]], aes(x = OtoC_ratio, HtoC_ratio)) +
   geom_point()
 
-files[[2]][, cs.flag.emergent_overlap := factor(cs.flag.emergent_overlap,
+# Read in processed data
+cross <- c(list.files("./4_gather.thresholds/", pattern = "2022-05-05.csv"))
+cross <- cross[!str_detect(cross, "peaks")]
+files <- list()
+
+for(i in 1:length(cross)){
+  files[[i]] <- read.csv(paste0("./4_gather.thresholds/", cross[i]),
+                         sep = ",", dec = ".", stringsAsFactors = F) %>% setDT()
+}
+
+files[[1]][, cs.flag.emergent_overlap.mod := factor(cs.flag.emergent_overlap,
                                                         levels = c("Global core","Global in-between",
                                                                    "Global satellite",
-                                                                   "Sed Core - Water Inbetween", "Sed Core - Water Sat",
-                                                                   "Sed Inbetween - Water Core", "Sed Sat - Water Core",
+                                                                   "Sed Core - Water Sat", "Sed Core - Water Inbetween", 
+                                                                   "Sed Sat - Water Core", "Sed Inbetween - Water Core",
                                                                    "Sed Sat - Water Inbetween", "Sed Inbetween - Water Sat"),
                                                         labels = c("Global core","Global in-between",
                                                                    "Global satellite",
-                                                                   "Sed Core - Water Inbetween", "Sed Core - Water Sat",
-                                                                   "Water Core - Sed Inbetween", "Water Core - Sed Sat",
+                                                                   "Sed Core - Water Sat/In-bet.", "Sed Core - Water Sat/In-bet.", 
+                                                                   "Water Core - Sed Sat/In-bet.", "Water Core - Sed Sat/In-bet.", 
                                                                    "Sed Sat - Water Inbetween", "Water Sat - Sed Inbetween"))]
 
 comp_groups <- data.frame(group = c("Saturated fatty acids",
@@ -1123,29 +1133,43 @@ comp_groups <- data.frame(group = c("Saturated fatty acids",
                                     "Highly unsaturated\ncompounds",
                                     "Vascular plant-\nderived polyphenols\nand phenols"),
                           HtoC_ratio = c(2, 1.7, 1.25, 0.5),
-                          cs.flag.emergent_overlap = "Global core")
+                          cs.flag.emergent_overlap.mod = "Global core") %>% setDT()
+
+comp_groups[, cs.flag.emergent_overlap := factor(cs.flag.emergent_overlap.mod,
+                                                 levels = c("Global core","Global in-between",
+                                                            "Global satellite",
+                                                            "Sed Core - Water Sat", "Sed Core - Water Inbetween", 
+                                                            "Sed Sat - Water Core", "Sed Inbetween - Water Core",
+                                                            "Sed Sat - Water Inbetween", "Sed Inbetween - Water Sat"),
+                                                 labels = c("Global core","Global in-between",
+                                                            "Global satellite",
+                                                            "Sed Core - Water Sat/In-bet.", "Sed Core - Water Sat/In-bet.", 
+                                                            "Water Core - Sed Sat/In-bet.", "Water Core - Sed Sat/In-bet.", 
+                                                            "Sed Sat - Water Inbetween", "Water Sat - Sed Inbetween"))]
 
 # check if data looks fine.
 # Do some Van Krevelen
 
-p <- ggplot(cor.files[[2]][!is.na(cs.flag.emergent_overlap),], aes(x = OtoC_ratio, HtoC_ratio)) +
+p <- ggplot(files[[1]][!is.na(cs.flag.emergent_overlap.mod),], aes(x = OtoC_ratio, HtoC_ratio)) +
   theme_bw() +
-  geom_point(aes(colour = cs.flag.emergent_overlap)) +
+  geom_point(aes(colour = cs.flag.emergent_overlap), alpha = 0.7) +
   scale_colour_viridis_d(option = "magma", end = 0.9) +
-  facet_wrap(.~cs.flag.emergent_overlap) +
+  facet_wrap(.~cs.flag.emergent_overlap.mod, ncol =2) +
   geom_hline(yintercept = 1.5, linetype = "dashed") +
   geom_abline(intercept = 1.1, slope = -0.3, linetype = "dashed") +
   # stat_ellipse(data = cor.files[[2]][IOS == T,], aes(x = OtoC_ratio, y = HtoC_ratio, group = IOS), type = "norm",
   #              colour = "tomato", linetype = "dashed") +
-  labs(x = "H/C", y = "O/C") +
+  labs(x = "O/C", y = "H/C") +
   lims(x = c(0,1.25), y = c(0,2))
 
-(p <- p + geom_text(data = comp_groups, aes(x = 0.72, y = HtoC_ratio, label = group), size = 3, 
+(p <- p + geom_text(data = comp_groups, aes(x = 0.78, y = HtoC_ratio, label = group), size = 3, 
               hjust = 0, lineheight = 0.7))
 
 # save
 ggsave("./7_molecular.traits/van_krevelen/VK_by_overlap.groups.png", p, dpi = 300,
        height = 20, width = 28, units = "cm")
+ggsave("./7_molecular.traits/van_krevelen/VK_by_overlap.groups.png", p, dpi = 300,
+       height = 25, width = 23, units = "cm")
 
 # Save filtered dataset
 # write files
