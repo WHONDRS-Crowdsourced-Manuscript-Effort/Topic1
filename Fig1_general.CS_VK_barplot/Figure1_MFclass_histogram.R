@@ -45,5 +45,5 @@ g_water=ggplot(cross_merge1, aes(x = cs.flag.emergent_water, fill = Class)) +the
 
 ### Arrange Pannel and save figure!
 g=arrangeGrob(g_sed, g_water, nrow=1, widths=c(2.5,3))
-setwd("C:/Users/micha/OneDrive/Documentos/GitHub/Topic1/7_molecular.traits/Boxplots")
+
 ggsave("Panel_Histogram_Class_merge1.png", dpi=300, height = 5, width=8, g)
