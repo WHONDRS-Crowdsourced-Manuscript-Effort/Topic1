@@ -1106,15 +1106,28 @@ lapply(files, nrow)
 ggplot(files[[2]], aes(x = OtoC_ratio, HtoC_ratio)) +
   geom_point()
 
-# Read in processed data
-cross <- c(list.files("./4_gather.thresholds/", pattern = "2022-05-05.csv"))
-cross <- cross[!str_detect(cross, "peaks")]
-files <- list()
+# Read in processed data ------------------------------------------------------------------
 
-for(i in 1:length(cross)){
-  files[[i]] <- read.csv(paste0("./4_gather.thresholds/", cross[i]),
-                         sep = ",", dec = ".", stringsAsFactors = F) %>% setDT()
-}
+# This code was for when we had multiple thresholds
+# cross <- c(list.files("./4_gather.thresholds/", pattern = "2022-05-05.csv"))
+# cross <- cross[!str_detect(cross, "peaks")]
+# files <- list()
+# 
+# for(i in 1:length(cross)){
+#   files[[i]] <- read.csv(paste0("./4_gather.thresholds/", cross[i]),
+#                          sep = ",", dec = ".", stringsAsFactors = F) %>% setDT()
+# }
+
+cross <- read.csv("./4_gather.thresholds/FTICR_crosstable_rep.merged1_all_em.thres_2022-05-05.csv",
+                  sep = ",", dec = ".", stringsAsFactors = F) %>% setDT()
+commat <- read.csv("./4_gather.thresholds/FTICR_commat_rep.merged1_2022-01-18.csv",
+                   sep = ",", dec = ".", stringsAsFactors = F)
+
+# only keep MF in cross table
+commat <- commat[, which(colnames(commat) %in% cross$MolForm)]
+
+write.table(commat, paste0("./4_gather.thresholds/FTICR_commat_rep.merged1_", Sys.Date(),".csv"),
+            sep = ",", dec = ".", row.names = F)
 
 files[[1]][, cs.flag.emergent_overlap.mod := factor(cs.flag.emergent_overlap,
                                                         levels = c("Global core","Global in-between",
