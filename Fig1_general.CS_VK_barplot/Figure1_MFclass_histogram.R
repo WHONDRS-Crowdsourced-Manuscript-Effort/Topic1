@@ -46,4 +46,4 @@ g_water=ggplot(cross_merge1, aes(x = cs.flag.emergent_water, fill = Class)) +the
 ### Arrange Pannel and save figure!
 g=arrangeGrob(g_sed, g_water, nrow=1, widths=c(2.5,3))
 
-ggsave("Panel_Histogram_Class_merge1.png", dpi=300, height = 5, width=8, g)
+ggsave("Fig.1_MFclass_histogram_FINAL.png", dpi=300, height = 5, width=8, g)
