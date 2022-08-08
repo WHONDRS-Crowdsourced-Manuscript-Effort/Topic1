@@ -13,6 +13,3 @@ Inlcude in this folder:
 *The script generates PCoA chart and pie donuts counting the molecule classes for [core] (https://github.com/WHONDRS-Crowdsourced-Manuscript-Effort/Topic1/tree/main/Fig3_beta.div_PCoA/Figures/core) and [satellite] (https://github.com/WHONDRS-Crowdsourced-Manuscript-Effort/Topic1/tree/main/Fig3_beta.div_PCoA/Figures/satellite) emergent flags
 
 *These figures were mount in an image editing software. There are the [PDF] (https://github.com/WHONDRS-Crowdsourced-Manuscript-Effort/Topic1/blob/main/Fig3_beta.div_PCoA/Figures/PCoA_mounted.pdf) and [TIFF] (https://github.com/WHONDRS-Crowdsourced-Manuscript-Effort/Topic1/blob/main/Fig3_beta.div_PCoA/Figures/PCoA_mounted.tif) options.
-
-
-* _[maps_to_GitHub.R](https://github.com/LMPB/Occupancy-Frequency-Distribution/blob/master/maps_to_GitHub.R)_:
