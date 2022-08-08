@@ -1,0 +1,43 @@
+"","cs.flag.emergent_overlap","Class","n"
+"1","Global satellite","AminoSugar",149
+"2","Global satellite","Carb",197
+"3","Global satellite","ConHC",344
+"4","Global satellite","Lignin",889
+"5","Global satellite","Lipid",346
+"6","Global satellite","Other",82
+"7","Global satellite","Protein",375
+"8","Global satellite","Tannin",203
+"9","Global satellite","UnsatHC",60
+"10","Sed Core - Water Sat","AminoSugar",15
+"11","Sed Core - Water Sat","Carb",5
+"12","Sed Core - Water Sat","ConHC",9
+"13","Sed Core - Water Sat","Lignin",7
+"14","Sed Core - Water Sat","Lipid",64
+"15","Sed Core - Water Sat","Other",2
+"16","Sed Core - Water Sat","Protein",166
+"17","Sed Core - Water Sat","Tannin",1
+"18","Sed Core - Water Sat","UnsatHC",1
+"19","Sed Inbetween - Water Sat","AminoSugar",87
+"20","Sed Inbetween - Water Sat","Carb",65
+"21","Sed Inbetween - Water Sat","ConHC",25
+"22","Sed Inbetween - Water Sat","Lignin",153
+"23","Sed Inbetween - Water Sat","Lipid",187
+"24","Sed Inbetween - Water Sat","Other",9
+"25","Sed Inbetween - Water Sat","Protein",313
+"26","Sed Inbetween - Water Sat","Tannin",22
+"27","Sed Inbetween - Water Sat","UnsatHC",20
+"28","Sed Sat - Water Core","ConHC",13
+"29","Sed Sat - Water Core","Lignin",315
+"30","Sed Sat - Water Core","Lipid",1
+"31","Sed Sat - Water Core","Protein",2
+"32","Sed Sat - Water Core","Tannin",45
+"33","Sed Sat - Water Core","UnsatHC",3
+"34","Sed Sat - Water Inbetween","AminoSugar",14
+"35","Sed Sat - Water Inbetween","Carb",50
+"36","Sed Sat - Water Inbetween","ConHC",184
+"37","Sed Sat - Water Inbetween","Lignin",608
+"38","Sed Sat - Water Inbetween","Lipid",22
+"39","Sed Sat - Water Inbetween","Other",9
+"40","Sed Sat - Water Inbetween","Protein",49
+"41","Sed Sat - Water Inbetween","Tannin",208
+"42","Sed Sat - Water Inbetween","UnsatHC",7
