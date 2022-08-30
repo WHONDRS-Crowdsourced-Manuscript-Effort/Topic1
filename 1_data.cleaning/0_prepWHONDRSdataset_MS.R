@@ -32,6 +32,9 @@ dim(proc.ft)
 ncol(proc.ft)- 39
 # 504 samples
 
+# make Masses as character
+proc.ft[, Mass := as.character(Mass)]
+
 # Separate into community matrix of abundances
 # check if molecular formulae are unique
 nrow(proc.ft) == length(unique(proc.ft$MolForm)) # no
@@ -60,7 +63,18 @@ as.binary <- function(x){
   return(x)
 }
 
-abund.dt <- proc.ft[, lapply(.SD, as.binary), by = .(MolForm), .SDcols = S19S_0004_ICR.2_p05:S19S_0004_ICR.1_p05]
+# write a key file
+key <- proc.ft %>% dplyr::select(Mass, MolForm)
+
+# read in final MF
+commat <- read.csv("./4_gather.thresholds/FTICR_commat_rep.merged1_2022-07-19.csv", sep = ",",  stringsAsFactors = F)
+# only keep those masses that are part of the final dataset
+key <- key[MolForm %in% colnames(commat),]
+write.table(key, "./4_gather.thresholds/keys/match_all.masses_to_MF.csv", sep = ",", row.names = F)
+
+
+abund.dt <- proc.ft[, lapply(.SD, as.binary), by = .(MolForm), 
+                    .SDcols = S19S_0004_ICR.2_p05:S19S_0004_ICR.1_p05]
 
 # merge back
 proc.ft <- merge(var.dt, abund.dt, by = "MolForm")
