@@ -76,10 +76,49 @@ trans.final = merge(trans.all.final,trans.mf.final)
 names(trans.final)[1] = "Mass"
 
 write.csv(trans.final,paste0(home.dir,"Total_number_of_transformations_per_peak.csv"),row.names = F)
-# In order to merge with the rest of the dataset the masses and the digits across them need to be consistent
-# Changing digits on the fly to be able to make a figur. We would need to cut to 4 digits but this is not accurate enough for a final figure
 
-trans.final$Mass = formatC(trans.final$Mass,digits = 3, format = "f")
-data$Mass = formatC(data$Mass,digits = 10, format = "f")
+trans.final$Mass = formatC(trans.final$Mass,digits = 6, format = "f")
 
-data.final = merge(data,trans.final, by = "Mass")
+key = read.csv(paste0(input.path,"/keys/match_all.masses_to_MF.csv"))
+
+data.int = merge(key,trans.final, by = "Mass")
+
+# Subset the data for only unique MF 
+data.int$info = duplicated(data.int$MolForm)
+
+data.int.uni = subset(data.int,data.int$info == FALSE)
+
+# Subset the data for only unique MF and Calculate mean values 
+
+dat = as.data.frame(matrix(NA, nrow = nrow(data.int),ncol = ncol(data.int)))
+colnames(dat) = colnames(data.int)
+ for (i in 1:nrow(data.int.uni)){
+   temp = subset(data.int,data.int$MolForm==data.int.uni$MolForm[i])
+ if (nrow(temp)>1){
+   dat$Mass[i] = temp$Mass[1]
+   dat$MolForm[i] = temp$MolForm[1]
+   dat$Total_all_peaks[i] = round(sum(temp$Total_all_peaks),0)
+   dat$Total_all_sed [i] = round(sum(temp$Total_all_sed),0)
+   dat$Total_all_water [i] = round(sum(temp$Total_all_water),0)
+   dat$Total_mf_peaks[i] = round(sum(temp$Total_mf_peaks),0)
+   dat$Total_mf_sed [i] = round(sum(temp$Total_mf_sed),0)
+   dat$Total_mf_water [i] = round(sum(temp$Total_mf_water),0)
+ } else{
+   dat$Mass[i] = temp$Mass[1]
+   dat$MolForm[i] = temp$MolForm[1]
+   dat$Total_all_peaks[i] = temp$Total_all_peaks[1]
+   dat$Total_all_sed [i] = temp$Total_all_sed[1]
+   dat$Total_all_water [i] = temp$Total_all_water[1]
+   dat$Total_mf_peaks[i] = temp$Total_mf_peaks[1]
+   dat$Total_mf_sed [i] = temp$Total_mf_sed[1]
+   dat$Total_mf_water [i] = temp$Total_mf_water[1]
+ }
+  
+   }
+
+dat= dat[!is.na(dat$MolForm),]
+data.final = merge(data,dat, by = "MolForm")
+
+data.final2 = data.final %>% select(Mass.y,Mass.x,MolForm,cs.flag.emergent_overlap,Total_all_peaks,Total_all_sed,Total_all_water,Total_mf_peaks,Total_mf_sed,Total_mf_water)
+  
+write.csv(data.final2,paste0(home.dir,"Total_number_of_transformations_per_threshold.csv"),row.names = F)
