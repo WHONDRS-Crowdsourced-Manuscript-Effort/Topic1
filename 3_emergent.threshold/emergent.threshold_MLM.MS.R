@@ -1120,16 +1120,19 @@ ggplot(files[[2]], aes(x = OtoC_ratio, HtoC_ratio)) +
 
 cross <- read.csv("./4_gather.thresholds/FTICR_crosstable_rep.merged1_all_em.thres_2022-05-05.csv",
                   sep = ",", dec = ".", stringsAsFactors = F) %>% setDT()
-commat <- read.csv("./4_gather.thresholds/FTICR_commat_rep.merged1_2022-01-18.csv",
+commat <- read.csv("./4_gather.thresholds/FTICR_commat_rep.merged1_2022-07-19.csv",
                    sep = ",", dec = ".", stringsAsFactors = F)
 
 # only keep MF in cross table
 commat <- commat[, which(colnames(commat) %in% cross$MolForm)]
 
-write.table(commat, paste0("./4_gather.thresholds/FTICR_commat_rep.merged1_", Sys.Date(),".csv"),
-            sep = ",", dec = ".", row.names = F)
+# write.table(commat, paste0("./4_gather.thresholds/FTICR_commat_rep.merged1_", Sys.Date(),".csv"),
+#             sep = ",", dec = ".", row.names = F)
 
-files[[1]][, cs.flag.emergent_overlap.mod := factor(cs.flag.emergent_overlap,
+ios.df <- data.frame(HtoC_ratio = c(1.3,1.04), OtoC_ratio = c(0.62,0.42))
+
+
+zfiles[[1]][, cs.flag.emergent_overlap.mod := factor(cs.flag.emergent_overlap,
                                                         levels = c("Global core","Global in-between",
                                                                    "Global satellite",
                                                                    "Sed Core - Water Sat", "Sed Core - Water Inbetween", 
@@ -1160,28 +1163,48 @@ comp_groups[, cs.flag.emergent_overlap := factor(cs.flag.emergent_overlap.mod,
                                                             "Water Core - Sed Sat/In-bet.", "Water Core - Sed Sat/In-bet.", 
                                                             "Sed Sat - Water Inbetween", "Water Sat - Sed Inbetween"))]
 
+cross[, cs.flag.emergent_overlap := factor(cs.flag.emergent_overlap,
+                                           levels = c("Global core","Global in-between",
+                                                      "Global satellite",
+                                                      "Sed Core - Water Sat", "Sed Core - Water Inbetween", 
+                                                      "Sed Sat - Water Core", "Sed Inbetween - Water Core",
+                                                      "Sed Sat - Water Inbetween", "Sed Inbetween - Water Sat"),
+                                           labels = c("Global core","Global in-between",
+                                                      "Global satellite",
+                                                      "Sed Core - Water Sat/In-bet.", "Sed Core - Water Sat/In-bet.", 
+                                                      "Water Core - Sed Sat/In-bet.", "Water Core - Sed Sat/In-bet.", 
+                                                      "Sed Sat - Water Inbetween", "Water Sat - Sed Inbetween"))]
+
+
 # check if data looks fine.
 # Do some Van Krevelen
-
-p <- ggplot(files[[1]][!is.na(cs.flag.emergent_overlap.mod),], aes(x = OtoC_ratio, HtoC_ratio)) +
+library(grid)
+p <- ggplot(cross[!is.na(cs.flag.emergent_overlap),], aes(x = OtoC_ratio, HtoC_ratio)) +
   theme_bw() +
   geom_point(aes(colour = cs.flag.emergent_overlap), alpha = 0.7) +
-  scale_colour_viridis_d(option = "magma", end = 0.9) +
-  facet_wrap(.~cs.flag.emergent_overlap.mod, ncol =2) +
+  scale_colour_manual(values = c("#999999", "#661100", "#0072B2",
+                                 "#FFB000", "#785EF0", "#FE6100", "#648FFF"),
+                      name = "Overlapping categories") +
+  facet_wrap(.~cs.flag.emergent_overlap, ncol =2) +
   geom_hline(yintercept = 1.5, linetype = "dashed") +
   geom_abline(intercept = 1.1, slope = -0.3, linetype = "dashed") +
-  # stat_ellipse(data = cor.files[[2]][IOS == T,], aes(x = OtoC_ratio, y = HtoC_ratio, group = IOS), type = "norm",
+  #stat_ellipse(data = ios.df, aes(x = OtoC_ratio, y = HtoC_ratio), type = "norm",
   #              colour = "tomato", linetype = "dashed") +
   labs(x = "O/C", y = "H/C") +
-  lims(x = c(0,1.25), y = c(0,2))
+  lims(x = c(0,1.25), y = c(0,2)) +
+  annotation_custom(grob=circleGrob(r=unit(1,"npc"),
+                                    gp = gpar(col = 'black', lty = 3, fill = 'transparent')),
+                    xmin=ios.df$OtoC_ratio[2], xmax=ios.df$OtoC_ratio[1],
+                    ymin=ios.df$HtoC_ratio[2], ymax=ios.df$HtoC_ratio[1])
+  
 
 (p <- p + geom_text(data = comp_groups, aes(x = 0.78, y = HtoC_ratio, label = group), size = 3, 
               hjust = 0, lineheight = 0.7))
 
 # save
-ggsave("./7_molecular.traits/van_krevelen/VK_by_overlap.groups.png", p, dpi = 300,
-       height = 20, width = 28, units = "cm")
-ggsave("./7_molecular.traits/van_krevelen/VK_by_overlap.groups.png", p, dpi = 300,
+# ggsave("./Supplementary/VK_by_overlap.groups.png", p, dpi = 300,
+#        height = 20, width = 28, units = "cm")
+ggsave("./Supplementary/VK_by_overlap.groups.png", p, dpi = 300,
        height = 25, width = 23, units = "cm")
 
 # Save filtered dataset
