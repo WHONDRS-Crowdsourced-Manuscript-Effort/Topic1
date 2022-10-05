@@ -46,34 +46,34 @@ cross$cs.flag.emergent_overlap= factor(cross$cs.flag.emergent_overlap,
                  "Water Core - Sed Sat/In-bet.", "Water Core - Sed Sat/In-bet.",
                  "Sed Sat - Water Inbetween", "Water Sat - Sed Inbetween"))
 
-
-plot1=ggboxplot(cross, x = "cs.flag.emergent_overlap" , y = "NOSC", fill = "cs.flag.emergent_overlap") +
+plot1=ggboxplot(cross, x = "cs.flag.emergent_overlap" , y = "Mass", fill = "cs.flag.emergent_overlap") +
   #stat_pvalue_manual(stat.test, hide.ns = FALSE) +
-  theme_bw() +theme(legend.position="none", axis.text.x=element_text(angle=45), axis.title.x=element_blank())+ 
+  theme_bw() +theme(legend.position="none", axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank())+ 
   scale_fill_manual(values = c("#999999", "#661100", "#0072B2", "#FFB000",  "#FE6100", "#648FFF", "#DC267F" ))
 
 
-plot2=ggboxplot(cross, x = "cs.flag.emergent_overlap" , y = "DBE", fill = "cs.flag.emergent_overlap") +
+plot2=ggboxplot(cross, x = "cs.flag.emergent_overlap" , y = "NOSC", fill = "cs.flag.emergent_overlap") +
   #stat_pvalue_manual(stat.test, hide.ns = FALSE) +
-  theme_bw() +theme(legend.position="none", axis.text.x=element_text(angle=45), axis.title.x=element_blank())+ 
+  theme_bw() +theme(legend.position="none",axis.text.x=element_blank(), axis.ticks.x=element_blank(),  axis.title.x=element_blank())+ 
   scale_fill_manual(values = c("#999999", "#661100", "#0072B2", "#FFB000",  "#FE6100", "#648FFF", "#DC267F" ))
 
 
-plot3=ggboxplot(cross, x = "cs.flag.emergent_overlap" , y = "AI_Mod", fill = "cs.flag.emergent_overlap") +
+plot3=ggboxplot(cross, x = "cs.flag.emergent_overlap" , y = "DBE", fill = "cs.flag.emergent_overlap") +
   #stat_pvalue_manual(stat.test, hide.ns = FALSE) +
-  theme_bw() +theme(legend.position="none", axis.text.x=element_text(angle=45), axis.title.x=element_blank())+ 
+  theme_bw() +theme(legend.position="none", axis.text.x=element_text(angle=90), axis.title.x=element_blank())+ 
   scale_fill_manual(values = c("#999999", "#661100", "#0072B2", "#FFB000",  "#FE6100", "#648FFF", "#DC267F" ))
 
 
-plot4=ggboxplot(cross, x = "cs.flag.emergent_overlap" , y = "Mass", fill = "cs.flag.emergent_overlap") +
+plot4=ggboxplot(cross, x = "cs.flag.emergent_overlap" , y = "AI_Mod", fill = "cs.flag.emergent_overlap") +
   #stat_pvalue_manual(stat.test, hide.ns = FALSE) +
-  theme_bw() +theme(legend.position="none", axis.text.x=element_text(angle=45), axis.title.x=element_blank())+ 
+  theme_bw() +theme(legend.position="none", axis.text.x=element_text(angle=90), axis.title.x=element_blank())+ 
   scale_fill_manual(values = c("#999999", "#661100", "#0072B2", "#FFB000",  "#FE6100", "#648FFF", "#DC267F" ))
+
 
 
 
 ##Arrange and save it!
-g=arrangeGrob(plot1, plot2, plot3, plot4,  ncol=2)
+g=arrangeGrob(plot1, plot2, plot3, plot4,  ncol=2, heights = c(3,4))
 ggsave("Fig.5_Panel_boxplots.png", dpi=300, height = 10, width=12, g)
 
 
