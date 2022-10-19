@@ -247,8 +247,8 @@ export.df <- export.df %>% separate(.id, into = c("dataset","rep.merged","rarity
 export.df$dataset <- factor(export.df$dataset, levels = c("mf","mz"), labels = c("molecular.formulae",
                                                                                  "peaks"))
 
-write.table(export.df, "./3_emergent.threshold/output/frequency_occupancy_mfmz.csv",
-            sep = ",", dec = ".", row.names = F)
+# write.table(export.df, "./3_emergent.threshold/output/frequency_occupancy_mfmz.csv",
+#             sep = ",", dec = ".", row.names = F)
 
 # Some sanity check
 # Are percentage values uniquely rounded?
@@ -306,7 +306,7 @@ em.list <- llply(flattened.ls, function(x){
                      y = x$frequency[localMinima(sec$y)[min.tail.peaks[2]:min.tail.peaks[1]]]),
                  colour = "royalblue") +
       labs(x = "", y = "Frequency") +
-      theme(axis.title = element_text(size = 9))
+      theme(axis.title = element_text(size = 12))
     
     # get another plot with data used to identify the points of maximum acceleration and minimum deceleration
     logged <- ggplot() +
@@ -333,7 +333,7 @@ em.list <- llply(flattened.ls, function(x){
                      y = pred$y[localMinima(sec$y)[min.tail.peaks[2]:min.tail.peaks[1]]]),
                  colour = "royalblue") +
       labs(x = "", y = "Frequency (log)") +
-      theme(axis.title = element_text(size = 9))
+      theme(axis.title = element_text(size = 12))
     
     # Show second derivative used to find the points
     deriv <- ggplot() +
@@ -350,9 +350,9 @@ em.list <- llply(flattened.ls, function(x){
                      y = sec$y[localMinima(sec$y)[min.tail.peaks[2]:min.tail.peaks[1]]]* 1000),
                  colour = "royalblue") +
       labs(x = "", y = expression(paste("Acceleration x10"^3, " (2"^"nd", " derivative)"))) +
-      theme(axis.title = element_text(size = 9))
+      theme(axis.title = element_text(size = 12))
     
-    p <- ggarrange(raw, logged, deriv, ncol = 3, labels = "auto")
+    p <- ggarrange(raw, logged, deriv, ncol = 3, labels = c("d","e","f"))
     # add x axis title to be in the middle of two panels
     
     # Extract identified threshold
@@ -390,7 +390,7 @@ em.list <- llply(flattened.ls, function(x){
                      y = x$frequency[localMinima(sec$y)[min.tail.peaks[2]:min.tail.peaks[1]]]),
                  colour = "royalblue") +
       labs(x = "", y = "Frequency") +
-      theme(axis.title = element_text(size = 9))
+      theme(axis.title = element_text(size = 12))
     
     # get another plot with data used to identify the points of maximum acceleration and minimum deceleration
     logged <- ggplot() +
@@ -417,7 +417,7 @@ em.list <- llply(flattened.ls, function(x){
                      y = pred$y[localMinima(sec$y)[min.tail.peaks[2]:min.tail.peaks[1]]]),
                  colour = "royalblue") +
       labs(x = "", y = "Frequency (log)") +
-      theme(axis.title = element_text(size = 9))
+      theme(axis.title = element_text(size = 12))
     
     # Show second derivative used to find the points
     deriv <- ggplot() +
@@ -434,9 +434,9 @@ em.list <- llply(flattened.ls, function(x){
                      y = sec$y[localMinima(sec$y)[min.tail.peaks[2]:min.tail.peaks[1]]]* 1000),
                  colour = "royalblue") +
       labs(x = "", y = expression(paste("Acceleration x10"^3, " (2"^"nd", " derivative)"))) +
-      theme(axis.title = element_text(size = 9))
+      theme(axis.title = element_text(size = 12))
     
-    p <- ggarrange(raw, logged, deriv, ncol = 3, labels = "auto")
+    p <- ggarrange(raw, logged, deriv, ncol = 3, labels =  c("a","b","c"))
     # add x axis title to be in the middle of two panels
     
     # Extract identified threshold
@@ -454,6 +454,12 @@ em.list <- llply(flattened.ls, function(x){
   out <- list(thres.df, p)
   return(out)
 })
+
+# Plot surface water vs sediment merge rep 1 and all for supplements
+p <- ggarrange(annotate_figure(em.list[[1]][[2]], top = "Surface water"),
+          annotate_figure(em.list[[2]][[2]], top = "Sediment", bottom = "Occupancy (%)"), nrow = 2)
+
+ggsave(paste0("./3_emergent.threshold/em.thres_curves_sed.surf.png"), p, width = 25, height = 15, unit = "cm", dpi = 250)
 
 # Extract smoothing
 fitted.df <- ldply(flattened.ls, function(x){
@@ -486,9 +492,9 @@ thres.df$dataset <- factor(thres.df$dataset, levels = c("mf","mz"), labels = c("
 thres.df <- thres.df[thres.df$rarity.cutoff == "all",]
 
 # Save as table
-write.table(thres.df, paste0("./4_gather.thresholds/keys/emergent_tresholds_key_",Sys.Date(), ".csv"),
-            sep = ",",
-            row.names = F)
+# write.table(thres.df, paste0("./4_gather.thresholds/keys/emergent_tresholds_key_",Sys.Date(), ".csv"),
+#             sep = ",",
+#             row.names = F)
 
 # Add to fitted data frame
 # pivot wider, threshold key
@@ -499,8 +505,8 @@ fitted.df <- fitted.df[thres.wide, , on = .(.id)]
 fitted.df[, occupancy := NULL]
 
 # Save fitted data
-write.table(fitted.df, "./3_emergent.threshold/output/em.thres_loess_spar0.5_fitted.csv",
-            sep = ",", dec = ".", row.names = F)
+# write.table(fitted.df, "./3_emergent.threshold/output/em.thres_loess_spar0.5_fitted.csv",
+#             sep = ",", dec = ".", row.names = F)
 
 # Knit a table for Github
 # thres.df <- read.csv("./3_emergent.threshold/output/emergent_tresholds_key_2022-03-01.csv",
@@ -827,8 +833,9 @@ all.thres[thres > 100, thres := NA]
 (p <- ggplot(all.thres[cs.flag != "In-between",], aes(x = cs.flag, y = thres)) +
   theme_bw() +
   geom_boxplot() +
+  scale_y_continuous(limits = c(0,100)) +
   facet_grid(.~dataset) +
-  labs(x = "Group", y = "Treshold: Occupancy (%)"))
+  labs(x = "", y = "Occupancy (%)"))
 
 ggsave("./3_emergent.threshold/threshold.values_boxplot.png", p,
        width = 8, height = 5, units = "cm", dpi = 300)
@@ -1120,11 +1127,15 @@ ggplot(files[[2]], aes(x = OtoC_ratio, HtoC_ratio)) +
 
 cross <- read.csv("./4_gather.thresholds/FTICR_crosstable_rep.merged1_all_em.thres_2022-05-05.csv",
                   sep = ",", dec = ".", stringsAsFactors = F) %>% setDT()
+
+cross[, .(n = .N), by = .(cs.flag.emergent_sed)]
 commat <- read.csv("./4_gather.thresholds/FTICR_commat_rep.merged1_2022-07-19.csv",
                    sep = ",", dec = ".", stringsAsFactors = F)
 
 # only keep MF in cross table
 commat <- commat[, which(colnames(commat) %in% cross$MolForm)]
+
+cross[]
 
 # write.table(commat, paste0("./4_gather.thresholds/FTICR_commat_rep.merged1_", Sys.Date(),".csv"),
 #             sep = ",", dec = ".", row.names = F)
@@ -1132,7 +1143,7 @@ commat <- commat[, which(colnames(commat) %in% cross$MolForm)]
 ios.df <- data.frame(HtoC_ratio = c(1.3,1.04), OtoC_ratio = c(0.62,0.42))
 
 
-zfiles[[1]][, cs.flag.emergent_overlap.mod := factor(cs.flag.emergent_overlap,
+files[[1]][, cs.flag.emergent_overlap.mod := factor(cs.flag.emergent_overlap,
                                                         levels = c("Global core","Global in-between",
                                                                    "Global satellite",
                                                                    "Sed Core - Water Sat", "Sed Core - Water Inbetween", 
@@ -1149,9 +1160,9 @@ comp_groups <- data.frame(group = c("Saturated fatty acids",
                                     "Highly unsaturated\ncompounds",
                                     "Vascular plant-\nderived polyphenols\nand phenols"),
                           HtoC_ratio = c(2, 1.7, 1.25, 0.5),
-                          cs.flag.emergent_overlap.mod = "Global core") %>% setDT()
+                          cs.flag.emergent_overlap = "Global core") %>% setDT()
 
-comp_groups[, cs.flag.emergent_overlap := factor(cs.flag.emergent_overlap.mod,
+comp_groups[, cs.flag.emergent_overlap := factor(cs.flag.emergent_overlap,
                                                  levels = c("Global core","Global in-between",
                                                             "Global satellite",
                                                             "Sed Core - Water Sat", "Sed Core - Water Inbetween", 
