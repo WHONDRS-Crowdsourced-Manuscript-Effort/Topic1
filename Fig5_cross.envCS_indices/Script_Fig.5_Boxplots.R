@@ -60,7 +60,7 @@ plot2=ggboxplot(cross, x = "cs.flag.emergent_overlap" , y = "NOSC", fill = "cs.f
 
 plot3=ggboxplot(cross, x = "cs.flag.emergent_overlap" , y = "DBE", fill = "cs.flag.emergent_overlap") +
   #stat_pvalue_manual(stat.test, hide.ns = FALSE) +
-  theme_bw() +theme(legend.position="none", axis.text.x=element_text(angle=90, size=12), axis.title.x=element_blank())+ 
+  theme_bw() +theme(legend.position="none", axis.text.x=element_blank(), axis.title.x=element_blank())+ 
   scale_fill_manual(values = c("#999999", "#661100", "#0072B2", "#FFB000",  "#FE6100", "#648FFF", "#DC267F" ))
 
 
@@ -69,11 +69,16 @@ plot4=ggboxplot(cross, x = "cs.flag.emergent_overlap" , y = "AI_Mod", fill = "cs
   theme_bw() +theme(legend.position="none", axis.text.x=element_text(angle=90, size=12), axis.title.x=element_blank())+ 
   scale_fill_manual(values = c("#999999", "#661100", "#0072B2", "#FFB000",  "#FE6100", "#648FFF", "#DC267F" ))
 
+plot5=ggboxplot(cross, x = "cs.flag.emergent_overlap" , y = "GFE", fill = "cs.flag.emergent_overlap") +
+  #stat_pvalue_manual(stat.test, hide.ns = FALSE) +
+  theme_bw() +theme(legend.position="none", axis.text.x=element_text(angle=90, size=12), axis.title.x=element_blank())+ 
+  scale_fill_manual(values = c("#999999", "#661100", "#0072B2", "#FFB000",  "#FE6100", "#648FFF", "#DC267F" ))
+
 
 
 
 ##Arrange and save it!
-g=arrangeGrob(plot1, plot2, plot3, plot4,  ncol=2, heights = c(3,4))
+g=arrangeGrob(plot1, plot2, plot3, plot4, plot5,  ncol=3, heights = c(3,4))
 ggsave("Fig.5_Panel_boxplots.png", dpi=300, height = 10, width=12, g)
 
 
@@ -85,6 +90,7 @@ aggregate( NOSC~cs.flag.emergent_overlap, data =cross, FUN=length)
 aggregate( DBE~cs.flag.emergent_overlap, data =cross, FUN=length)
 aggregate( AI_Mod~cs.flag.emergent_overlap, data =cross, FUN=length)
 aggregate( Mass~cs.flag.emergent_overlap, data =cross, FUN=length)
+aggregate( GFE~cs.flag.emergent_overlap, data =cross, FUN=length)
 
 # Checking assumptions 
 ##Levene test: quality of variances
@@ -97,6 +103,7 @@ shapiro.test(global_core$NOSC)
 shapiro.test(global_core$DBE)
 shapiro.test(global_core$AI_Mod)
 shapiro.test(global_core$Mass)
+shapiro.test(global_core$GFE)
 #Not normal, I will use non-parametric test
 
 #Kruskal-Wallis: Non-parametric test
@@ -104,6 +111,7 @@ kruskal.test(NOSC ~ cs.flag.emergent_overlap, data = cross) #p-value<0.001
 kruskal.test(DBE ~ cs.flag.emergent_overlap, data = cross) #p-value<0.001
 kruskal.test(AI_Mod ~ cs.flag.emergent_overlap, data = cross) #p-value<0.001
 kruskal.test(Mass ~ cs.flag.emergent_overlap, data = cross) #p-value<0.001
+kruskal.test(GFE ~ cs.flag.emergent_overlap, data = cross) #p-value<0.001
 
 #If the results of a Kruskal-Wallis test are statistically significant, then it's appropriate to conduct Dunn's Test to determine exactly which groups are different.
 dunnTest(NOSC ~ cs.flag.emergent_overlap, data = cross,   method="holm") #all are different
@@ -116,6 +124,8 @@ dunnTest(DBE ~ cs.flag.emergent_overlap, data = cross,   method="holm")
 dunnTest(AI_Mod ~ cs.flag.emergent_overlap, data = cross,   method="holm") 
 # Global core - Global in-between  -1.123171  2.613650e-01  2.613650e-01
 #Global core - Global satellite   1.482623  1.381747e-01  2.763494e-01
+
+dunnTest(GFE ~ cs.flag.emergent_overlap, data = cross,   method="holm")
 
 dunnTest(Mass ~ cs.flag.emergent_overlap, data = cross,   method="holm") #all are different
 #Global core - Sed Core - Water Sat/In-bet.  -1.9796630  4.774141e-02  1.432242e-01
@@ -130,10 +140,11 @@ annotate("text", x = 3, y = 1.1, label = "b")
 plot1a=plot1+annotate("text", x = 1, y = 905, label = "a")+annotate("text", x = 4, y = 905, label = "ab")+
   annotate("text", x = 2, y = 905, label = "b")+ 
   annotate("text", x = 3, y = 905, label = "c")+ annotate("text", x = 6, y = 905, label = "c")
+plot5a=plot5
 
 
 ##Arrange and save it!
-ga=arrangeGrob(plot1a, plot2a, plot3a, plot4a,  ncol=2, heights=c(3,4.5))
+ga=arrangeGrob(plot1a, plot2a, plot3a, plot4a, plot5a, ncol=2, heights=c(3,4.5))
 ggsave("Fig.5_Panel_boxplots_statistics.png", dpi=300, height = 10, width=12, ga)
 
 
