@@ -23,7 +23,6 @@
 ### Packages -------------------------------------------------------------------------------
 pckgs <- list("plyr","tidyverse","data.table","doMC")
 
-### Check if packages are installed, output packages not installed:
 (miss.pckgs <- unlist(pckgs)[!(unlist(pckgs) %in% installed.packages()[,"Package"])])
 # install missing packages with following line. Please uncomment:
 #if(length(miss.pckgs) > 0) install.packages(miss.pckgs)
