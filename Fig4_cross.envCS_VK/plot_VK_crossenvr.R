@@ -65,6 +65,15 @@ cross[, n.by.cross := .N, by = .(cs.flag.emergent_overlap)]
 prop.df <- cross[, .(n.by.cross = unique(n.by.cross),
           n = .N), by = .(cs.flag.emergent_overlap, Class)] %>% arrange(cs.flag.emergent_overlap, Class) %>% setDT
 
+cols <- c("NOSC","DBE","GFE", "Mass", "AI_Mod") 
+cross[, lapply(.SD, median, na.rm = T), by = cs.flag.emergent_overlap, .SDcols = cols]%>% arrange(cs.flag.emergent_overlap)
+cross[, lapply(.SD, sd, na.rm = T), by = cs.flag.emergent_overlap, .SDcols = cols] %>% arrange(cs.flag.emergent_overlap)
+
+cols <- c("NOSC","DBE","GFE", "Mass", "AI_Mod") 
+cross[, lapply(.SD, median, na.rm = T), by = cs.flag.emergent_sed, .SDcols = cols]%>% arrange(cs.flag.emergent_sed)
+cross[, lapply(.SD, sd, na.rm = T), by = cs.flag.emergent_sed, .SDcols = cols] %>% arrange(cs.flag.emergent_sed)
+
+
 prop.df[, cs.flag.emergent_overlap := factor(cs.flag.emergent_overlap,
                                            levels = c("Global core","Global in-between",
                                                       "Global satellite",
@@ -77,7 +86,7 @@ prop.df[, cs.flag.emergent_overlap := factor(cs.flag.emergent_overlap,
                                                       "Water Core -\nSed Sat/In-bet.",
                                                       "Sed Sat -\nWater Inbetween", "Water Sat -\nSed Inbetween"))]
 
-prop.df[, Class := factor(Class, levels = c("AminoSugar", "Carb", "ConHC", "Lignin", "Lipid", "Protein", "Tannin",
+cross[, Class := factor(Class, levels = c("AminoSugar", "Carb", "ConHC", "Lignin", "Lipid", "Protein", "Tannin",
                                      "UnsatHC", "Other"),
                           labels = c("Amino Sugar", "Carbohydrates", "Condensed\naromatics", "Lignin",
                                      "Lipid", "Protein", "Tannin", "Unsaturated\nhydrocarbons", "Other"))]
@@ -90,9 +99,31 @@ prop.df[, .(sum = sum(n),
             n = unique(n.by.cross)), by = .(cs.flag.emergent_overlap)]
 prop.df <- prop.df[cs.flag.emergent_overlap != "Water unique" & cs.flag.emergent_overlap != "Sediment unique", ]
 
+length(unique(cross[cs.flag.emergent_sed == "Satellite",]$MolForm))
+
+cross[, n.sed := .N, by = .(cs.flag.emergent_sed)]
+prop.df <- cross[, .(n.sed = unique(n.sed),
+                     n = .N), by = .(cs.flag.emergent_sed, Class)] %>% arrange(cs.flag.emergent_sed, Class) %>% setDT()
+prop.df[, prop := (n * 100) / n.sed] %>% arrange(cs.flag.emergent_sed, desc(prop))
+
+cross[!is.na(cs.flag.emergent_water), n.water := .N]
+prop.df <- cross[, .(n.water = unique(n.water),
+                     n = .N), by = .(cs.flag.emergent_water)] %>% arrange(cs.flag.emergent_water) %>% setDT()
+
+prop.df[, prop := (n * 100) / n.water] %>% arrange(cs.flag.emergent_water, desc(prop))
+
+prop.df[, .(sum = sum(prop)), by = .(cs.flag.emergent_sed)]
+prop.df[, .(sum = sum(n),
+            n = unique(n.sed)), by = .(cs.flag.emergent_sed)]
+
+prop.df <- cross[, .(n.water = unique(n.water),
+                     n = .N), by = .(cs.flag.emergent_water, Class)] %>% arrange(cs.flag.emergent_water, Class) %>% setDT
+prop.df[, prop := (n * 100) / n.water] %>% arrange(cs.flag.emergent_water, desc(prop))
+prop.df[, .(sum = sum(prop)), by = .(cs.flag.emergent_water)]
+
 library(ggpubr)
 
-(prop.p <- ggplot(prop.df, aes(x = cs.flag.emergent_overlap, y = prop, fill = Class)) +
+(prop.p <- ggplot(prop.df[!is.na(cs.flag.emergent_sed),], aes(x = cs.flag.emergent_sed, y = prop, fill = Class)) +
   theme_bw() +
   scale_fill_manual(values = c("#88CCEE", "#CC6677", "#DDCC77", "#44AA99",
                                "#117733", "#332288", "#AA4499", "#999933", "#661100")) +

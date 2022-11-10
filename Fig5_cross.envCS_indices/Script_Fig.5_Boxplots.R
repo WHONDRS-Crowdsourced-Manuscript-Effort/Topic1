@@ -27,6 +27,7 @@ setwd("")
 
 # Tables used to generate figures
 cross=read.csv("FTICR_crosstable_rep.merged1_all_em.thres_2022-05-05.csv")
+#cross=read.csv("./4_gather.thresholds/FTICR_crosstable_rep.merged1_all_em.thres_2022-05-05.csv")
 cross=subset(cross, !is.na(cs.flag.emergent_overlap)) #remove NAs
 
 ### Check categories
@@ -60,14 +61,15 @@ plot2=ggboxplot(cross, x = "cs.flag.emergent_overlap" , y = "NOSC", fill = "cs.f
 
 plot3=ggboxplot(cross, x = "cs.flag.emergent_overlap" , y = "DBE", fill = "cs.flag.emergent_overlap") +
   #stat_pvalue_manual(stat.test, hide.ns = FALSE) +
-  theme_bw() +theme(legend.position="none", axis.text.x=element_blank(), axis.title.x=element_blank())+ 
+  theme_bw() +theme(legend.position="none",axis.text.x=element_text(angle=90, size=12), axis.title.x=element_blank())+ 
   scale_fill_manual(values = c("#999999", "#661100", "#0072B2", "#FFB000",  "#FE6100", "#648FFF", "#DC267F" ))
 
 
 plot4=ggboxplot(cross, x = "cs.flag.emergent_overlap" , y = "AI_Mod", fill = "cs.flag.emergent_overlap") +
   #stat_pvalue_manual(stat.test, hide.ns = FALSE) +
   theme_bw() +theme(legend.position="none", axis.text.x=element_text(angle=90, size=12), axis.title.x=element_blank())+ 
-  scale_fill_manual(values = c("#999999", "#661100", "#0072B2", "#FFB000",  "#FE6100", "#648FFF", "#DC267F" ))
+  scale_fill_manual(values = c("#999999", "#661100", "#0072B2", "#FFB000",  "#FE6100", "#648FFF", "#DC267F" )) +
+  labs(y = expression(paste("AI"["mod"])))
 
 plot5=ggboxplot(cross, x = "cs.flag.emergent_overlap" , y = "GFE", fill = "cs.flag.emergent_overlap") +
   #stat_pvalue_manual(stat.test, hide.ns = FALSE) +
@@ -78,8 +80,10 @@ plot5=ggboxplot(cross, x = "cs.flag.emergent_overlap" , y = "GFE", fill = "cs.fl
 
 
 ##Arrange and save it!
-g=arrangeGrob(plot1, plot2, plot3, plot4, plot5,  ncol=3, heights = c(3,4))
+g=arrangeGrob(plot1, plot2,grid::rectGrob(gp=grid::gpar(col=NA)), plot3, plot4, plot5,  ncol=3, heights = c(3,4))
 ggsave("Fig.5_Panel_boxplots.png", dpi=300, height = 10, width=12, g)
+
+#ggsave("./Fig5_cross.envCS_indices/Fig.5_Panel_boxplots.png", dpi=300, height = 10, width=12, g)
 
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
@@ -133,7 +137,8 @@ dunnTest(Mass ~ cs.flag.emergent_overlap, data = cross,   method="holm") #all ar
 #Global satellite - Sed Sat - Water Inbetween   0.5817314  5.607476e-01  5.607476e-01
 
 #Plots with statistics
-plot2a=plot2+annotate("text", x = 1:7, y = 3, label =c("n=666", "n=543", "n=2645", "n=524", "n=1367", "n=1151", "n=881"))
+#plot2a=plot2+annotate("text", x = 1:7, y = 3, label =c("n=666", "n=543", "n=2645", "n=524", "n=1367", "n=1151", "n=881"))
+plot2a=plot2
 plot3a=plot3+annotate("text", x = 5, y = 20, label = "a")+annotate("text", x = 6, y = 21, label = "a")
 plot4a=plot4+annotate("text", x = 1, y = 1.1, label = "ab")+annotate("text", x = 2, y = 1.1, label = "a")+
 annotate("text", x = 3, y = 1.1, label = "b")
@@ -144,9 +149,9 @@ plot5a=plot5
 
 
 ##Arrange and save it!
-ga=arrangeGrob(plot1a, plot2a, plot3a, plot4a, plot5a, ncol=2, heights=c(3,4.5))
+ga=arrangeGrob(plot1a, plot2a, grid::rectGrob(gp=grid::gpar(col=NA)), plot3a, plot4a, plot5a, ncol=3, heights=c(3,4.5))
 ggsave("Fig.5_Panel_boxplots_statistics.png", dpi=300, height = 10, width=12, ga)
-
+#ggsave("./Fig5_cross.envCS_indices/Fig.5_Panel_boxplots_statistics.png", dpi=300, height = 10, width=12, ga)
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~# END
 

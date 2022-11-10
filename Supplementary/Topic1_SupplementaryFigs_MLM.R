@@ -26,6 +26,7 @@ setwd("/Users/newuser/Downloads/Topic1-main/4_gather.thresholds")
 
 #Input table
 cross= read.csv('FTICR_crosstable_rep.merged1_all_em.thres_2022-05-05.csv')
+#cross= read.csv('./4_gather.thresholds/FTICR_crosstable_rep.merged1_all_em.thres_2022-05-05.csv')
 
 #Checking the tables
 colnames(cross)
@@ -69,7 +70,7 @@ stat.test <- stat.test %>% add_xy_position(x = "cs_flag")
 
 gnosc=ggboxplot(na_bind, x = "cs_flag" , y = "NOSC", fill = "cs_flag") +
   #stat_pvalue_manual(stat.test, hide.ns = FALSE) +
-  theme_bw() +theme(legend.position="none", axis.text.x = element_blank())+
+  theme_bw() +theme(legend.position="none", axis.text.x = element_blank(), axis.ticks.x = element_blank())+
   scale_fill_manual(values=c("#CB6778", "#9785E0", "#8CCEED","#CB6778", "#9785E0", "#8CCEED" ))+
   labs(x=" ", y="NOSC")+ annotate("text", x=4, y=2.7, label="a")+annotate("text", x=5, y=2.7, label="a")
 
@@ -81,7 +82,7 @@ stat.test <-na_bind %>% dunn_test( DBE~cs_flag, p.adjust.method = "holm")
 stat.test
 gdbe=ggboxplot(na_bind, x = "cs_flag" , y = "DBE", fill = "cs_flag") +
   #stat_pvalue_manual(stat.test, hide.ns = FALSE) +
-  theme_bw() +theme(legend.position="none", axis.text.x = element_blank())+
+  theme_bw() +theme(legend.position="none",axis.text.x = element_text(angle=90), axis.ticks.x = element_blank())+
   scale_fill_manual(values=c("#CB6778", "#9785E0", "#8CCEED","#CB6778", "#9785E0", "#8CCEED" ))+
   labs(x=" ", y="DBE")+ annotate("text", x=4, y=29, label="a")+
   annotate("text", x=5, y=29, label="a")+annotate("text", x=6, y=29, label="a")
@@ -110,7 +111,7 @@ gaimod=ggboxplot(na_bind, x = "cs_flag" , y = "AI_Mod", fill = "cs_flag") +
   scale_fill_manual(values=c("#CB6778", "#9785E0", "#8CCEED","#CB6778", "#9785E0", "#8CCEED" ))+
  annotate("text", x=3, y=2.5, label="a")+ annotate("text", x=6, y=2.5, label="a")+
 annotate("text", x=4, y=2.5, label="b")+ annotate("text", x=5, y=2.5, label="b")+
-  labs(x=" ", y="AI modified")
+  labs(x=" ", y=expression(paste("AI"["mod"])))
 
 ########################
 #5) Mass
@@ -126,9 +127,10 @@ gmass=ggboxplot(na_bind, x = "cs_flag" , y = "Mass", fill = "cs_flag") +
 
 ##-> Arrange and save it!
 
-g=arrangeGrob(gmass,  gnosc, gdbe, gaimod, ggfe, ncol=3, heights=c(3,4))
+g=arrangeGrob(gmass,  gnosc, grid::rectGrob(gp=grid::gpar(col=NA)), gdbe, gaimod, ggfe, ncol=3, heights=c(3,4))
 
 ggsave("Panel_DOMproperties.png", dpi=300, height = 6.5,  width = 8, g)
+#ggsave("./Supplementary/Panel_DOMproperties.png", dpi=300, height = 6.5,  width = 8, g)
  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~#
