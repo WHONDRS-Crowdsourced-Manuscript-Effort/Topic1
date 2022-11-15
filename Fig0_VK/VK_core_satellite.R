@@ -1,5 +1,12 @@
+##############################################
+# Script to plot VK diagram for Core-Satellite
+# Kadir Bice
+# November 2022
+##############################################
+
 library(tidyverse) # data wrangling
 library(patchwork) # plotting with layouts
+library(grid) # to add circle for IOS
 
 # Set directory to source file directory (for ease of use in Rstudio. remove if using from command line)
 setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
@@ -7,7 +14,7 @@ setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
 # color blind palette for plotting
 cbPalette <- c("#CC6677","#88CCEE","#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
 
-### FUNCTIONS
+### FUNCTIONS --------------------
 plot_vk <- function(cross_table, sed_or_water, threshold_method, pathways){
   #' plot Van-Krevelen diagram for Core-Satellite species
   #' cross_table: Input dataset.
@@ -134,32 +141,39 @@ plot_with_layout <- function(p1, p2, p3){
     plot_layout(ncol = 2, nrow = 2, widths = c(4, 1), heights = c(1, 4))
 }
 
-### PLOTTING
+### PLOTTING ---------------------------
 # read in the data
 ct1 <- read.csv('./Data/FTICR_crosstable_rep.merged1_all_em.thres_2022-05-05.csv') # extract molecular information
 # ct2 <- read.csv('./Data/FTICR_crosstable_rep.merged2_all_em.thres_2022-03-18.csv') # extract molecular information
 
-# VK
-# pdf('vk_diagram_merged1_w_classes.pdf')
-sample_type = 'sed'
+# VK 
+pdf('vk_diagram_merged1_wo_class_w_IOS.pdf')
+sample_type = 'water'
 p1 <- plot_vk(cross_table = ct1, sed_or_water = sample_type, threshold_method = 'emergent', pathways = 1) 
 comp_groups <- data.frame(group = c("Saturated fatty acids",
                                     "Peptides and\nunsaturated\naliphatics",
                                     "Highly unsaturated\ncompounds",
                                     "Vascular plant-\nderived polyphenols\nand phenols"),
                           HtoC_ratio = c(2, 1.7, 1.25, 0.5))
-p1 <- p1 + geom_hline(yintercept = 1.5, linetype = "dashed") +
-  geom_abline(intercept = 1.1, slope = -0.3, linetype = "dashed") +
-  geom_text(data = comp_groups, aes(x = 0.78, y = HtoC_ratio, label = group), size = 3, hjust = 0, lineheight = 0.7)
-
+# add compound classes
+# p1 <- p1 + geom_hline(yintercept = 1.5, linetype = "dashed") +
+#   geom_abline(intercept = 1.1, slope = -0.3, linetype = "dashed") +
+#   geom_text(data = comp_groups, aes(x = 0.78, y = HtoC_ratio, label = group), size = 3, hjust = 0, lineheight = 0.7)
+# add IOS
+ios.df <- data.frame(HtoC_ratio = c(1.3,1.04), OtoC_ratio = c(0.62,0.42))
+p1 <- p1 + annotation_custom(grob=circleGrob(r=unit(1,"npc"),
+                                  gp = gpar(col = 'black', lty = 3, fill = 'transparent')),
+                  xmin=ios.df$OtoC_ratio[2], xmax=ios.df$OtoC_ratio[1],
+                  ymin=ios.df$HtoC_ratio[2], ymax=ios.df$HtoC_ratio[1]) + 
+  annotate('text', x = 0.52, y = 1.165, label = 'IOS')
 p1d1 <- plot_dens(cross_table = ct1, threshold_method = 'emergent', sed_or_water = sample_type, axis_name = 'OC')
 p1d2 <- plot_dens(cross_table = ct1, threshold_method = 'emergent', sed_or_water = sample_type, axis_name = 'HC')
 
 plot_with_layout(p1d1, p1, p1d2)
 
-# dev.off()
+dev.off()
 
-# KMD
+# KMD 
 # p2 <- plot_kmd(cross_table = ct1, sed_or_water = sample_type, threshold_method = 'emergent')
 # plot(p1d2)
 
