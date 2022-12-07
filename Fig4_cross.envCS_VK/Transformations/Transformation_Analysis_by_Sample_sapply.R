@@ -1,11 +1,11 @@
 ### Determing carbon transformations ###
 rm(list=ls(all=T))
 library(dplyr)
-library(tidyr)
+library(tidyr); library (reshape2)
 
 options(digits=10) # Sig figs in mass resolution data
 
-Sample_Name = "S19S_MF_assigned"
+Sample_Name = "S19S_MF_assigned_merged_data"
 
 
 #######################
@@ -13,11 +13,20 @@ Sample_Name = "S19S_MF_assigned"
 #######################
 
 # Loading in ICR data
-setwd('C:/Users/gara009/OneDrive - PNNL/Documents/GitHub/Topic1/Fig4_cross.envCS_VK/Transformations/only_MF_assigned')
-data = read.csv(list.files(pattern = "Data.csv"), row.names = 1) # Keeping data and mol-data seperate to ensure they are unaltered
-mol = read.csv(list.files(pattern = "Mol.csv"), row.names = 1)
+setwd('C:/Users/gara009/OneDrive - PNNL/Documents/GitHub/Topic1/Fig4_cross.envCS_VK/Transformations/MF_assigned_merged_data')
+data = read.csv(list.files(pattern = "merged1"), row.names = 1) 
+df = data # save original file
+# Need to get the dataset into a format that the transformations code receive
 
-colnames(data) = paste("Sample_", colnames(data), sep="")
+data = t(data)
+
+# Remove the X of the rownames and male sure it is numeric
+rownames(data) = gsub("X","",rownames(data))
+data = as.data.frame(data)
+rownames(data) = as.numeric(rownames(data))
+
+# Fixing sample names
+colnames(data) = gsub("S19S.","S19S-",colnames(data))
 
 # Loading in transformations
 trans.full =  read.csv("Transformation_Database_07-2020.csv")
@@ -27,21 +36,21 @@ trans.full$Name = as.character(trans.full$Name)
 #### Errors ####
 # ############ #
 
-# Checking row names consistency between molecular info and data
-if(identical(x = row.names(data), y = row.names(mol)) == FALSE){
-  stop("Something is incorrect: the mol. info and peak counts don't match")
-}
+# # Checking row names consistency between molecular info and data
+# if(identical(x = row.names(data), y = row.names(mol)) == FALSE){
+#   stop("Something is incorrect: the mol. info and peak counts don't match")
+# }
 
 # Checking to ensure ftmsRanalysis was run
-if(length(which(mol$C13 == 1)) > 0){
-  stop("Isotopic signatures weren't removed")
-}
+# if(length(which(mol$C13 == 1)) > 0){
+#   stop("Isotopic signatures weren't removed")
+# }
 
 # Probably not necessary, but checking for presence/absence
-if(max(data) > 1){
-  print("Data was not presence/absence")
-  data[data > 1] = 1
-}
+# if(max(data) > 1){
+#   print("Data was not presence/absence")
+#   data[data > 1] = 1
+# }
 
 # Creating output directories
 if(!dir.exists("Transformation Peak Comparisons")){
