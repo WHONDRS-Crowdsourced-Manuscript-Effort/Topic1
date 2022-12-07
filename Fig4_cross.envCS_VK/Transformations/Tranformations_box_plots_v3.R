@@ -54,12 +54,11 @@ stat_summary(fun.y = mean, geom = "point", shape = 18, size = 2, colour = "yello
   theme(axis.text.y=element_text(size=8))+
   theme(axis.title.x =element_text(size=8))+
   theme(axis.title =element_text(size=8))+
-  theme(axis.title.y =element_text(size=8))+annotate("text", x = 2, y = 120, label = "abc")+annotate("text", x = 1, y = 120, label = "abcdef")+
-   annotate("text", x = 3, y = 120, label = "abcde")+annotate("text", x = 4, y = 120, label = "cf")+annotate("text", x = 5, y = 120, label = "df")+annotate("text", x = 6, y = 120, label = "de")+
- annotate("text", x = 7, y = 120, label = "f")
+  theme(axis.title.y =element_text(size=8))+annotate("text", x = 2, y = 120, label = "abc")+
+   annotate("text", x = 7, y = 120, label = "bce")+annotate("text", x = 4, y = 120, label = "abd")+annotate("text", x = 6, y = 120, label = "b")+annotate("text", x = 5, y = 120, label = "d")+annotate("text", x = 3, y = 120, label = "e")
 
-ggsave(file="Mean_Transformations.pdf")
-ggsave(file="Mean_Transformations.png")
+ggsave(file="Mean_Transformations_stats2.pdf")
+ggsave(file="Mean_Transformations_stats2.png")
 
 ## Statistics
 #Kruskal-Wallis: Non-parametric test
